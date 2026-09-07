@@ -1,0 +1,23 @@
+{
+  "stagehand_preset": {
+    "name": "Minimal glow",
+    "description": "The quietest glow: outlines only, faint sparks, no bus band and no cut flash, oversampling off for the cheapest frame.",
+    "stagehand_version": "0.1.0-dev",
+    "schema": 2,
+    "created": "2026-09-07"
+  },
+  "config": {
+    "glow": {
+      "enable": true,
+      "mode": "meter",
+      "style": "edge",
+      "warm_amount": 0.2,
+      "outline_gain": 0.7,
+      "meter": { "tint_gain": 0.05 },
+      "spark": { "style": "beam", "alpha": 0.4, "halo_px": 8 },
+      "bus": { "enable": false },
+      "cut_flash": { "enable": false },
+      "render": { "oversample": 1 }
+    }
+  }
+}

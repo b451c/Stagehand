@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stagehand for REAPER - User Guide</title>
+<meta name="description" content="Stagehand for REAPER 7: session navigator, showcase director with glow and captions, recorder companions, session overview, stems and agent access. The user guide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#171A21;--panel:#20242E;--panel2:#2A2F3B;--line:#39404F;--hover:#323949;--sel:#3A4256;
+  --text:#E9EDF3;--muted:#8D95A7;--dim:#4A5163;--accent:#3AD1FF;--accent2:#FFB347;--ok:#6FE39A;--warn:#F5E663;--danger:#FF5A5A;
+  --accent-glow:rgba(58,209,255,.10);--font:'IBM Plex Sans',system-ui,-apple-system,sans-serif;--mono:'IBM Plex Mono',Menlo,Consolas,monospace;
+  --radius:6px;--sidebar-w:270px}
+html{scroll-behavior:smooth;font-size:15px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.7;-webkit-font-smoothing:antialiased}
+::selection{background:#1b6f8c;color:#fff}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.layout{display:flex;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;z-index:100;padding:22px 0 40px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.sidebar-header{padding:0 20px 16px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.sidebar-logo{font-size:1.15rem;font-weight:700;color:#fff;letter-spacing:-.02em}.sidebar-logo span{color:var(--accent)}
+.sidebar-version{font-size:.72rem;color:var(--muted);margin-top:2px;font-family:var(--mono)}
+.sidebar-links{padding:0 20px 12px;font-size:.78rem;color:var(--muted)}.sidebar-links a{color:var(--muted)}.sidebar-links a:hover{color:var(--accent)}
+.nav-group{margin-bottom:6px}
+.nav-group-title{display:block;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 20px 3px}
+.nav-group-title:hover{color:var(--text);text-decoration:none}
+.nav-link{display:block;padding:4px 20px 4px 30px;font-size:.82rem;color:var(--muted);border-left:2px solid transparent}
+.nav-link:hover{color:var(--text);background:var(--hover);text-decoration:none}
+.nav-link.active,.nav-group-title.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-glow)}
+.content{margin-left:var(--sidebar-w);flex:1;max-width:860px;padding:44px 56px 120px}
+h1{font-size:2.1rem;font-weight:700;letter-spacing:-.03em;margin-bottom:6px;color:#fff}h1 span{color:var(--accent)}
+.subtitle{font-size:1rem;color:var(--muted);margin-bottom:28px;font-weight:300}
+h2{font-size:1.4rem;font-weight:600;letter-spacing:-.02em;margin:56px 0 14px;padding-bottom:10px;border-bottom:1px solid var(--line);color:#fff;scroll-margin-top:24px}
+h3{font-size:1.05rem;font-weight:600;margin:30px 0 10px;color:var(--text);scroll-margin-top:24px}
+h2:first-of-type{margin-top:28px}
+p{margin:0 0 14px;color:var(--text)}
+ul,ol{margin:6px 0 16px;padding-left:24px}li{margin-bottom:5px}li::marker{color:var(--dim)}li>ul,li>ol{margin:4px 0 4px}
+code{font-family:var(--mono);font-size:.84em;background:var(--panel2);padding:2px 6px;border-radius:3px;color:#cfe9ff}
+pre{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin:12px 0 20px;overflow-x:auto;font-size:.82rem;line-height:1.55}
+pre code{background:none;padding:0;color:var(--text);font-size:inherit}
+table{width:100%;border-collapse:collapse;margin:14px 0 24px;font-size:.86rem}
+thead th{text-align:left;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 12px;border-bottom:2px solid var(--line)}
+tbody td{padding:7px 12px;border-bottom:1px solid var(--line);vertical-align:top}tbody tr:hover{background:var(--hover)}
+td:first-child{white-space:nowrap;color:#fff}
+.table-wrap{overflow-x:auto}
+figure{margin:18px 0 26px}figure img{max-width:100%;border-radius:var(--radius);border:1px solid var(--line);display:block}
+figure.narrow img{max-width:min(100%,460px)}figure.mid img{max-width:min(100%,720px)}
+figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+.figrow{display:flex;gap:16px;flex-wrap:wrap;margin:18px 0 26px}.figrow figure{margin:0;flex:1 1 300px}.figrow figure img{max-width:100%}
+.hero{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin:0 0 26px;font-size:.92rem;color:var(--text)}
+.hero b{color:#fff}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 26px}.chip{font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:12px;background:var(--accent-glow);color:var(--accent);border:1px solid rgba(58,209,255,.25);text-transform:uppercase;letter-spacing:.03em}
+.note{padding:12px 16px;border-radius:var(--radius);margin:14px 0 22px;font-size:.88rem;background:rgba(255,179,71,.07);border-left:3px solid var(--accent2)}
+hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+.footer{text-align:center;color:var(--dim);font-size:.8rem;margin-top:60px;padding-top:28px;border-top:1px solid var(--line)}.footer a{color:var(--muted)}
+.scroll-top{position:fixed;bottom:22px;right:22px;width:38px;height:38px;background:var(--panel);border:1px solid var(--line);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:1.1rem;cursor:pointer;opacity:0;transition:opacity .3s;z-index:200}
+.scroll-top.visible{opacity:1}
+@media(max-width:900px){.sidebar{display:none}.content{margin-left:0;padding:24px 18px 80px;max-width:100%}}
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Stage<span>hand</span></div>
+    <div class="sidebar-version">v1.0.0 - user guide</div>
+  </div>
+  <div class="sidebar-links"><a href="https://github.com/b451c/Stagehand">GitHub</a> &middot; <a href="https://github.com/b451c/Stagehand/releases">Releases</a> &middot; <a href="https://github.com/b451c/Stagehand/blob/main/docs/config-reference.md">Config reference</a></div>
+<div class="nav-group"><a class="nav-group-title" href="#install-and-start">Install and start</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#navigator">Navigator</a>
+<a class="nav-link" href="#navigator-the-window-top-to-bottom">The window, top to bottom</a>
+<a class="nav-link" href="#navigator-scenes">Scenes</a>
+<a class="nav-link" href="#navigator-markers">Markers</a>
+<a class="nav-link" href="#navigator-tracks">Tracks</a>
+<a class="nav-link" href="#navigator-items">Items</a>
+<a class="nav-link" href="#navigator-audition">Audition</a>
+<a class="nav-link" href="#navigator-focus-tracks-and-show-all">Focus tracks and Show all</a>
+<a class="nav-link" href="#navigator-restore-nothing-is-left-behind">Restore: nothing is left behind</a>
+<a class="nav-link" href="#navigator-groups">Groups</a>
+<a class="nav-link" href="#navigator-families">Families</a>
+<a class="nav-link" href="#navigator-marker-classes">Marker classes</a>
+<a class="nav-link" href="#navigator-keys-window-focused">Keys (window focused)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#director">Director</a>
+<a class="nav-link" href="#director-the-window-top-to-bottom">The window, top to bottom</a>
+<a class="nav-link" href="#director-building-the-shot-list">Building the shot list</a>
+<a class="nav-link" href="#director-validation">Validation</a>
+<a class="nav-link" href="#director-the-run">The run</a>
+<a class="nav-link" href="#director-restore-nothing-is-left-behind">Restore: nothing is left behind</a>
+<a class="nav-link" href="#director-keys-window-focused-director-tab">Keys (window focused, Director tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#hud">HUD</a>
+<a class="nav-link" href="#hud-the-bar">The bar</a>
+<a class="nav-link" href="#hud-sync-flashes">Sync flashes</a>
+<a class="nav-link" href="#hud-the-hud-tab">The HUD tab</a>
+<a class="nav-link" href="#hud-keys-window-focused-hud-tab">Keys (window focused, HUD tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#glow">Glow</a>
+<a class="nav-link" href="#glow-what-it-draws">What it draws</a>
+<a class="nav-link" href="#glow-the-glow-tab">The Glow tab</a>
+<a class="nav-link" href="#glow-performance-guard">Performance guard</a>
+<a class="nav-link" href="#glow-keys-window-focused-glow-tab">Keys (window focused, Glow tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#settings">Settings</a>
+<a class="nav-link" href="#settings-two-layers">Two layers</a>
+<a class="nav-link" href="#settings-controls">Controls</a>
+<a class="nav-link" href="#settings-presets">Presets</a>
+<a class="nav-link" href="#settings-problems-not-silent-repairs">Problems, not silent repairs</a>
+<a class="nav-link" href="#settings-updates">Updates</a>
+<a class="nav-link" href="#settings-keys-window-focused-settings-tab">Keys (window focused, Settings tab)</a>
+<a class="nav-link" href="#settings-tips">Tips</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#overview">Overview</a>
+<a class="nav-link" href="#overview-the-layout">The layout</a>
+<a class="nav-link" href="#overview-capturing-with-the-companion">Capturing with the companion</a>
+<a class="nav-link" href="#overview-guided-capture-any-screenshot-tool">Guided capture (any screenshot tool)</a>
+<a class="nav-link" href="#overview-keys-window-focused-overview-tab">Keys (window focused, Overview tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#recorder">Recorder</a>
+<a class="nav-link" href="#recorder-arm-play-stop">Arm, play, stop</a>
+<a class="nav-link" href="#recorder-the-checklist">The checklist</a>
+<a class="nav-link" href="#recorder-screen-layout-at-start">Screen layout at start</a>
+<a class="nav-link" href="#recorder-the-control-protocol">The control protocol</a>
+<a class="nav-link" href="#recorder-recording-with-the-companion">Recording with the companion</a>
+<a class="nav-link" href="#recorder-obs-recipe-no-scripts">OBS recipe (no scripts)</a>
+<a class="nav-link" href="#recorder-shot-list-export-and-import">Shot-list export and import</a>
+<a class="nav-link" href="#recorder-keys-window-focused-recorder-tab">Keys (window focused, Recorder tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#stems">Stems</a>
+<a class="nav-link" href="#stems-a-stem">A stem</a>
+<a class="nav-link" href="#stems-building-the-set">Building the set</a>
+<a class="nav-link" href="#stems-render-settings">Render settings</a>
+<a class="nav-link" href="#stems-pre-flight-and-the-batch">Pre-flight and the batch</a>
+<a class="nav-link" href="#stems-results">Results</a>
+<a class="nav-link" href="#stems-restore-nothing-is-left-behind">Restore: nothing is left behind</a>
+<a class="nav-link" href="#stems-keys-window-focused-stems-tab">Keys (window focused, Stems tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#agent-access">Agent access</a>
+<a class="nav-link" href="#agent-access-how-it-works">How it works</a>
+<a class="nav-link" href="#agent-access-install-the-server-in-your-agent">Install the server in your agent</a>
+<a class="nav-link" href="#agent-access-the-three-switches">The three switches</a>
+<a class="nav-link" href="#agent-access-the-tools-an-agent-sees">The tools an agent sees</a>
+<a class="nav-link" href="#agent-access-keys-window-focused-agent-tab">Keys (window focused, Agent tab)</a>
+</div>
+<div class="nav-group"><a class="nav-group-title" href="#support-the-development">Support the development</a>
+</div>
+</nav>
+<main class="content">
+<h1>Stage<span>hand</span> user guide</h1>
+<p class="subtitle">Session navigator, showcase director, glow and captions, recorder companions, session overview, stems and agent access for REAPER 7 - one ReaScript package.</p>
+<div class="hero"><b>Install through ReaPack:</b> Extensions &gt; ReaPack &gt; Import repositories, paste <code>https://raw.githubusercontent.com/b451c/Stagehand/main/index.xml</code>, then Browse packages and install <b>Stagehand</b> (ReaImGui is pulled in as a dependency; js_ReaScriptAPI and SWS are optional and unlock the glow, the window layout, the overview geometry and the support links).</div>
+<div class="chips"><a class="chip" href="#install-and-start">Install and start</a><a class="chip" href="#navigator">Navigator</a><a class="chip" href="#director">Director</a><a class="chip" href="#hud">HUD</a><a class="chip" href="#glow">Glow</a><a class="chip" href="#settings">Settings</a><a class="chip" href="#overview">Overview</a><a class="chip" href="#recorder">Recorder</a><a class="chip" href="#stems">Stems</a><a class="chip" href="#agent-access">Agent access</a><a class="chip" href="#support-the-development">Support the development</a></div>
+<p>Stagehand is one ReaScript package for REAPER 7: a session navigator, a showcase director with glow and captions, recorder companions and a one-image session overview. This guide grows with the milestones; today it covers the <strong>Navigator</strong>, the <strong>Director</strong> (shot list and follow-play), the <strong>HUD</strong> (the caption bar for the recording), the <strong>Glow</strong> (the overlay that lights the arrange with the sound), the <strong>Overview</strong> (one tall picture of the whole session), the <strong>Recorder</strong> (the control protocol for the companion scripts, the checklist, the screen layout at start, the shot-list export), the <strong>Stems</strong> (stem definitions in bulk, a matrix editor, Stagehand-owned render settings, a sequential renderer with a pre-flight and a results page), the <strong>Agent</strong> tab (an AI agent reads the session and drives Stagehand through the bundled MCP server, at your discretion) and <strong>Settings</strong> (every knob, presets, per-project overrides). Requirements: REAPER 7.x and ReaImGui (install it through ReaPack: Extensions &gt; ReaPack &gt; Browse packages &gt; "ReaImGui: ReaScript binding for Dear ImGui"). js_ReaScriptAPI is optional: it unlocks the Glow overlay, the screen layout, the overview geometry and scrolling. The companion scripts in <code>tools/</code> need Python 3 (Pillow and ffmpeg widen what they can do).</p>
+<h2 id="install-and-start">Install and start</h2>
+<ol>
+<li>Install the package through ReaPack (repository index: see the README) or copy the <code>Stagehand</code> folder into <code>&lt;REAPER resource path&gt;/Scripts/</code> and load <code>Stagehand.lua</code> through Actions &gt; Show action list &gt; New action &gt; Load ReaScript.
+</li>
+<li>Run <strong>Stagehand</strong> (the main window), <strong>Stagehand - Navigator</strong>, <strong>Stagehand - Director</strong>, <strong>Stagehand - HUD</strong>, <strong>Stagehand - Overview</strong>, <strong>Stagehand - Recorder</strong>, <strong>Stagehand - Agent</strong> or <strong>Stagehand - Settings</strong> (they open the app on that tab; when the app already runs they only switch the tab; the HUD launcher also shows the caption bar). <strong>Stagehand - Glow toggle</strong> switches the overlay on and off in the running app - give it a shortcut for the recording session. Give the main action a shortcut too, for example Ctrl+Alt+N.
+</li>
+<li>The window is dockable: click the dock icon in the header, press Ctrl+D, or drag the window into a REAPER docker. Dock, size, active tab and the toggles are remembered per project (with a global fallback for new projects).
+</li>
+</ol>
+<p>Running the main action again while Stagehand is open closes the running instance and starts a fresh one.</p>
+<h2 id="navigator">Navigator</h2>
+<p>The Navigator answers "take me there" and "let me hear only this" in a large session.</p>
+<figure class="narrow"><img src="images/navigator.png" alt="The Navigator on the demo session: scenes with their item counts, play / S / M per row, family chips, the transport strip." loading="lazy"><figcaption>The Navigator on the demo session: scenes with their item counts, play / S / M per row, family chips, the transport strip.</figcaption></figure>
+<h3 id="navigator-the-window-top-to-bottom">The window, top to bottom</h3>
+<ul>
+<li><strong>Header</strong>: project name, transport time with a play indicator, the dock/undock button and the menu (chevron).
+</li>
+<li><strong>Groups</strong> (only when you defined some): buttons for named time ranges with digit keys, see <em>Groups</em>.
+</li>
+<li><strong>Search</strong>: type to filter the current list. Fuzzy by default: every word of the query must appear in the name, as a substring or as an in-order subsequence (<code>hbr</code> finds "Harbor"). Enter jumps to the highlighted row (the first match when nothing is highlighted). Esc clears. Ctrl+F puts the cursor into the field from anywhere.
+</li>
+<li><strong>Tabs</strong>: Scenes, Markers, Tracks, Items, each with a count. Tab / Shift+Tab cycle them when you are not typing.
+</li>
+<li><strong>Transport strip</strong>: play / stop / loop for the <em>active scene</em> (the last scene you clicked, else the scene under the cursor), its name, and the scene <strong>S</strong> / <strong>M</strong> buttons plus <strong>x</strong> (clear every solo and mute Stagehand set).
+</li>
+<li><strong>Family chips</strong>: switch families on and off. They filter what scene solo / mute act on and what the Items tab lists. Hidden in the compact layout (window lower than 430 px); the filter still applies.
+</li>
+<li><strong>The list</strong> of the active tab. Click = jump, double-click = audition, right-click = context menu. The row under the cursor (scene containing it, marker within 0.25 s, selected track, item containing it) carries an accent bar.
+</li>
+<li><strong>Footer</strong>: <em>Focus tracks</em>, <em>Show all</em>, <em>Time sel.</em>, <em>Restore (n)</em>, and a status line with the last action or the key hints.
+</li>
+</ul>
+<h3 id="navigator-scenes">Scenes</h3>
+<p>Scenes are the project's regions, sorted by time, with their colour, start time and the number of items that overlap them. Per row: <strong>play</strong> (audition the scene: play from its start, stop at its end), <strong>S</strong> (solo the scene), <strong>M</strong> (mute the scene). A click jumps: edit cursor to the start, arrange zoomed to the scene (padding 0.3 s or 6 % of the length), time selection set to the scene when <em>Time sel.</em> is on, and, when <em>Focus tracks</em> is on, only the tracks with items in the scene stay visible in the track panel (their folders stay open; everything else is hidden).</p>
+<p><strong>Solo scene</strong> soloes <em>in place</em> (<code>I_SOLO = 2</code>) every track that has at least one item overlapping the scene and passes the family filter. Sends, returns and folder parents are heard through REAPER's own solo-in-place logic. A track you had soloed yourself before is never touched, and survives when the scene solo is cleared. Press <strong>S</strong> again (or <strong>x</strong>, or Ctrl+0) to put back exactly the solos Stagehand set. Soloing another scene clears the previous one first.</p>
+<p><strong>Mute scene</strong> mutes the <em>items</em> inside the scene, not the tracks: the tracks keep playing outside the scene. An item you had muted before stays muted when the scene mute is cleared. Both operations are one undo point each ("Stagehand: Solo scene ...").</p>
+<h3 id="navigator-markers">Markers</h3>
+<p>Every marker with its time and a colour class (see <em>Marker classes</em>). Click = cursor on the marker and a 5 s window around it (2.5 s each side). <strong>play</strong> auditions from the marker to the next marker (the last marker plays 5 s).</p>
+<h3 id="navigator-tracks">Tracks</h3>
+<p>The whole track tree with folder depth, a family colour dot (folders show a folder icon in the family colour), item counts and live <strong>S</strong> / <strong>M</strong> buttons (solo in place / mute of that track, plain REAPER toggles in an undo point). Click = select the track, show it if it was hidden, and scroll it into view. Right-click &gt; <em>Audition</em> plays the active scene with that track soloed in place.</p>
+<h3 id="navigator-items">Items</h3>
+<figure class="narrow"><img src="images/navigator_items.png" alt="The Items tab of the Navigator: the items of the active scene, filtered by family." loading="lazy"><figcaption>The Items tab of the Navigator: the items of the active scene, filtered by family.</figcaption></figure>
+<p>The items of the active scene, sorted by time, with the track name. <strong>play</strong> auditions the item with its track soloed in place and stops at the item end; <strong>M</strong> mutes / unmutes the item. Click = cursor at the item, zoom to it, the item and its track selected and scrolled into view. When no scene is active, the tab says so: click a scene or put the cursor inside one.</p>
+<h3 id="navigator-audition">Audition</h3>
+<p>An audition plays a range through REAPER's transport and stops by itself at the end of the range (within one defer frame, about 30 ms). While it plays, the row's play button is lit. Any temporary solo it set (the item's or track's solo in place) is put back when it ends or when you press stop / Space. With <strong>Loop</strong> on (transport strip, Ctrl+L, or the menu) the range becomes the loop range with repeat on for the duration of the audition; the previous repeat state and loop range come back afterwards.</p>
+<h3 id="navigator-focus-tracks-and-show-all">Focus tracks and Show all</h3>
+<p><em>Focus tracks</em> (Ctrl+H) hides, on every scene jump, the tracks without items in that scene (<code>B_SHOWINTCP</code>), keeping their folders open. Turning it off restores the hidden tracks. <em>Show all</em> (Ctrl+A) makes every track visible in the track panel. Both only change track-panel visibility; mixer, mute and solo are untouched. Both are journaled, so <em>Restore</em> puts the visibility back exactly as it was before Stagehand touched it.</p>
+<h3 id="navigator-restore-nothing-is-left-behind">Restore: nothing is left behind</h3>
+<p>Everything the Navigator changes in the project is recorded in a journal before the change is made: solos, item mutes, hidden tracks, the repeat state and the loop range of an audition. <em>Restore (n)</em> in the footer (and the menu entry) replays the journal in reverse. A value you changed yourself after Stagehand set it is left alone and reported as "left as you changed them". Closing the window, a script error and REAPER's exit all run the same restore. The journal is saved with the project state, so if REAPER quits mid-way the next launch offers to restore what was left ("Restore from the last run?" with Restore / Discard).</p>
+<p>Things that are <em>not</em> restored because they are what you asked for: the edit cursor, the arrange zoom, the time selection of a jump (switch <em>Time sel.</em> off if you want to keep yours; REAPER links the loop points to the time selection by default), track and item selection, and the per-track <strong>S</strong> / <strong>M</strong> toggles in the Tracks and Items tabs (those are plain REAPER toggles, undo them with Ctrl+Z).</p>
+<p>Stagehand never saves the project. Per-project state (tab, toggles, families, groups saved for the project) lives in the project's extension state and is written to disk only when <em>you</em> save.</p>
+<h3 id="navigator-groups">Groups</h3>
+<p>Groups are named time ranges with a digit key, for example acts of a picture or sections of a song. Menu &gt; <em>Groups...</em>: add a row, name it, pick a key (1-9, 0), type the range or take it from the time selection or the active scene. Save globally or for this project. Group buttons appear under the header; the group containing the cursor is highlighted; the digit keys jump when you are not typing in the search field.</p>
+<h3 id="navigator-families">Families</h3>
+<p>Menu &gt; <em>Families...</em>. A family has a name, a colour, a rule and a "match on" scope: the top folder's name (default), the track's own name, or the track and any of its parents. Rules are tokens separated by <code>|</code>: <code>TOKEN</code> = the name contains it, <code>^TOKEN</code> = starts with it, <code>=TOKEN</code> = equals it; case does not matter. Tracks that match no rule form the family <em>Other</em>. The shipped set: Dialogue (<code>^DIALOG|^DIA|^DX|^VO|^VOICE</code>), Music (<code>^MUSIC|^MX|^MUS|^SCORE</code>), Ambience (<code>^AMB|^ATMO|^BG</code>), Foley (<code>^FOL</code>), SFX (<code>^SFX|^FX|^EFFECT</code>), Design (<code>^DESIGN|^DSG|^DSN</code>). Saving globally also removes a project override of the same list, so what you see is what you saved.</p>
+<h3 id="navigator-marker-classes">Marker classes</h3>
+<p>Menu &gt; <em>Marker classes...</em>: the same rule syntax on marker names, evaluated top to bottom, first match wins. The class gives the marker its dot colour in the list. Shipped: Cut (<code>^CUT|^SHOT</code>), Dialogue (<code>^VO|^DX|^DIAL|^LINE</code>), Hit (<code>HIT|IMPACT|STING|FLASH|BOOM</code>), Todo (<code>^TODO|^FIX|^CHECK</code>), Note (<code>^NOTE</code>).</p>
+<h3 id="navigator-keys-window-focused">Keys (window focused)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Up / Down, Enter</td><td>move the highlight, jump to it</td></tr>
+<tr><td>Ctrl+Enter</td><td>audition the highlighted row</td></tr>
+<tr><td>Space</td><td>play / stop (also ends an audition)</td></tr>
+<tr><td>Tab / Shift+Tab</td><td>next / previous tab</td></tr>
+<tr><td>1-9, 0</td><td>jump to the group with that key</td></tr>
+<tr><td>Esc</td><td>clear the search</td></tr>
+<tr><td>Ctrl+F</td><td>search field</td></tr>
+<tr><td>Ctrl+H</td><td>Focus tracks on / off</td></tr>
+<tr><td>Ctrl+A</td><td>Show all tracks</td></tr>
+<tr><td>Ctrl+T</td><td>Time selection on jump on / off</td></tr>
+<tr><td>Ctrl+L</td><td>Loop auditions on / off</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+<tr><td>Ctrl+R</td><td>refresh the lists (they also refresh on every project change)</td></tr>
+<tr><td>Ctrl+0</td><td>clear every solo and mute Stagehand set</td></tr>
+</tbody></table></div>
+<p>On macOS use Cmd where the table says Ctrl. While the search field is active, letters, digits and Space type into it; the other keys work as listed. While the Stagehand window has keyboard focus REAPER's own shortcuts do not fire.</p>
+<h2 id="director">Director</h2>
+<p>The Director answers "show the story of the session while it plays". You describe the session as a list of <strong>shots</strong>: time ranges with the tracks (lanes) that tell the story of that fragment and a caption for the viewer. During a <strong>run</strong> the arrange follows playback: a little before each shot starts, the track panel switches to that shot's lanes, their heights are locked so the lanes fill the arrange, the folder rows and envelope lanes you asked for stay visible, and the view zooms to the shot with a short animation. When the run stops, everything is put back exactly as it was. The HUD shows the shot's caption while it plays and the Glow lights the items that sound (their own chapters below); the recorder companions arrive with milestone M5.</p>
+<figure class="narrow"><img src="images/director.png" alt="The Director: the shot list built from scenes, one lane rule per shot, validation clean." loading="lazy"><figcaption>The Director: the shot list built from scenes, one lane rule per shot, validation clean.</figcaption></figure>
+<h3 id="director-the-window-top-to-bottom">The window, top to bottom</h3>
+<ul>
+<li><strong>Header</strong>: project name, a <strong>LIVE</strong> badge while a run is active (Stagehand controls the track layout), transport time, dock and menu.
+</li>
+<li><strong>Controls</strong>: <em>Start run</em> / <em>Stop run</em>, <em>Auto</em> (auto-follow on/off), first / previous / next / last shot, and <em>Restore (n)</em> with the number of journaled layout changes.
+</li>
+<li><strong>Settings</strong> (hidden in the compact layout): <em>Mode</em> Focus / All, <em>Parents</em> None / Bus / All, <em>View</em> Page / Follow, <em>Envelopes</em> Story / Keep. Changing one re-applies the current shot at once, so you see the effect while it plays.
+</li>
+<li><strong>Current shot</strong>: number, name, time range, a progress bar of the shot and the caption's first line. When no run is active it shows which shot would start at the cursor.
+</li>
+<li><strong>The shot list</strong>: number, start time, name, a summary of its rules and a validation badge (red = error, yellow = warning, blue = note; hover or right-click for the text). Click = go to the shot (cursor to its start, run started if needed), double-click = edit. Per row: <strong>eye</strong> = preview the layout without moving the cursor (auto-follow pauses), <strong>pencil</strong> = edit. Right-click: go to, preview, edit, duplicate after, remove.
+</li>
+<li><strong>Validation</strong> line under the list: click to open the report; click an entry to highlight its shot.
+</li>
+<li><strong>Footer</strong>: <em>Add shot</em>, <em>From scenes</em>, <em>Pinned rows</em>, <em>Validate</em>, and the status line.
+</li>
+</ul>
+<h3 id="director-building-the-shot-list">Building the shot list</h3>
+<ul>
+<li><strong>From scenes</strong> appends one shot per region: the region's name and caption, the range of the region, and one lane rule <em>Items in range</em> (every track with an item inside the range). It is the fastest way to a first showcase of a session that already has regions; then edit the shots that need fewer or other lanes.
+</li>
+<li><strong>Add shot</strong> opens the editor with the time selection (or ten seconds from the cursor) as the range.
+</li>
+<li>The <strong>shot editor</strong>: name; start and end (typed, from the cursor, from the time selection, or from the scene under the cursor); caption and an optional second caption (another language; the character counters turn yellow above the HUD limit); the <strong>lanes</strong>; the <strong>envelope lanes</strong>; per-shot overrides of the view and the parents setting. Lanes are rules, evaluated when the shot is applied, so a renamed or added track is picked up without editing:
+<ul>
+<li><em>Items in range</em> - every track with an item overlapping the shot, optionally limited to one family;
+</li>
+<li><em>Family</em> - every non-folder track of a family (the families of the Navigator);
+</li>
+<li><em>Name rule</em> - the rule syntax of the families (<code>TOKEN</code> contains, <code>^TOKEN</code> starts with, <code>=TOKEN</code> equals, several with <code>|</code>), for example <code>=DX Mara|=DX Keeper</code> or <code>^Score</code>;
+</li>
+<li><em>One track</em> - picked from the tree (remembered by GUID, then by name). The <em>Tracks</em> column shows how many tracks each rule resolves to right now. Envelope rules pair a track rule with an envelope-name rule (<code>Volume</code>, <code>Pan</code>, <code>Mute</code>, a send or an FX parameter name) and show their match count.
+</li>
+</ul>
+</li>
+<li><strong>Pinned rows</strong> (footer or menu) are rows that stay at the top in every shot with a fixed height: typically the picture track (say 76 px) or the dialogue bus (40 px). They use the same rule syntax and are saved for the project or globally.
+</li>
+<li>Shots are kept sorted by start time and saved with the project (project extension state); nothing touches disk until you save the project.
+</li>
+</ul>
+<h3 id="director-validation">Validation</h3>
+<p><em>Validate</em> (also Ctrl+R, and automatically after edits) checks the list the way the offline checker of the source project did, and reports per shot:</p>
+<ul>
+<li>errors: an empty range, a lane rule that matches no track, no lane resolving at all;
+</li>
+<li>warnings: gaps or overlaps between shots, a missing name, a caption longer than the HUD limit (135 characters by default), lanes without items in the shot, envelope rules that match nothing, a lead longer than the page padding, and <em>lanes that do not fit</em>: the height budget at the current arrange height (pinned rows + parent rows + visible envelope lanes + lanes at the minimum lane height) exceeds what is available;
+</li>
+<li>notes: tracks that play in the shot but are not shown.
+</li>
+</ul>
+<h3 id="director-the-run">The run</h3>
+<figure class="mid"><img src="images/director_run.jpg" alt="A Director run on the demo session: the arrange follows the shot, lanes locked to fill the view, the HUD bar at the bottom, the glow on the sounding tracks." loading="lazy"><figcaption>A Director run on the demo session: the arrange follows the shot, lanes locked to fill the view, the HUD bar at the bottom, the glow on the sounding tracks.</figcaption></figure>
+<p><em>Start run</em> (Ctrl+Enter) applies the shot under the cursor and switches on auto-follow. While the transport runs the shot changes <strong>lead</strong> seconds (0.4 s by default) before each shot's start, so the lanes are in place when the shot begins; a switch lands within one defer frame (about 33 ms) of that time. With auto-follow off (<em>Auto</em> or the A key) the shot you chose stays until you pick another one. First / previous / next / last and a click on a row move the edit cursor (seeking during playback) and apply the shot. <em>Stop run</em> (Ctrl+Enter, Esc) or <em>Restore</em> puts the layout back. Note that with auto-follow on the layout follows the edit cursor even while the transport is stopped: a click in the ruler's timeline lane, or the cursor jumping back when playback stops, switches the shot and animates the view. When you are editing regions or items while a run is active, switch <em>Auto</em> off (A) or stop the run, and the arrange stays where you left it.</p>
+<p>What a shot does to the track panel, in order: pinned rows get their fixed height; the lanes get one common height computed from the arrange height minus the pinned rows, the parent rows and the visible envelope lanes, clamped between the minimum and the maximum lane height; every other track is hidden (Focus mode) or set to the compact height (All mode); folder ancestors of the lanes are un-collapsed and, in Parents Bus / All mode, shown as thin rows. Heights are <em>locked</em> (REAPER scales unlocked overrides with the vertical zoom). REAPER lays the list out a frame later, so a <strong>verify pass</strong> measures where the last row really ends and corrects the lane height once or twice (envelope lanes and theme minimums are only known then). The arrange scrolls to the top; in All mode it scrolls the first lane under the pinned rows.</p>
+<p><strong>View</strong>: <em>Page</em> zooms so the shot fits the arrange with padding before and after (0.6 s / 0.5 s), and the cursor sweeps across a still page. <em>Follow</em> keeps a window sliding with the cursor, the cursor at a third of the width; the window is the longer of the follow length (6 s) and 60 % of the shot. The zoom animates over 0.3 s with a smoothstep curve (linear and ease-out are available). REAPER's <em>continuous scrolling</em> is switched off for the run so the view never pages on its own, and switched back afterwards.</p>
+<p><strong>Envelopes</strong>: in <em>Story</em> mode every track envelope lane is hidden and only the lanes a shot names are shown (the volume automation of the music bus under the dialogue, a filter sweep on the riser); in <em>Keep</em> mode the lanes stay as saved. Hidden lanes stay active; only their visibility changes.</p>
+<p><strong>Ruler lanes</strong> (setting <code>director.ruler.mode = hide</code>, off by default): the marker and region lanes of the ruler are toggled off for the run and back afterwards. REAPER offers no way to read their state, so the toggle assumes they are visible, and the ruler keeps its own minimum height: on the test machines hiding the first lane gave the arrange 10 px, the second lane nothing, and after the lanes came back the ruler stayed 10 px shorter until its edge is dragged. Use it when the marker band really is in the way of a recording.</p>
+<h3 id="director-restore-nothing-is-left-behind">Restore: nothing is left behind</h3>
+<p>Before the Director changes anything it records the previous value in the same journal the Navigator uses: per track its visibility, height override, height lock, folder collapse and pin state; per envelope its visibility; the arrange view and the vertical scroll position; the continuous-scrolling toggle; each ruler lane it toggled. <em>Stop run</em>, <em>Restore</em>, closing the window, a script error and REAPER's exit replay the journal. Track and envelope entries are restored unconditionally (the layout belongs to the Director while a run is active). If REAPER quits during a run, the journal is offered on the next launch of that project ("Restore from the last run?").</p>
+<p>While a run is active the Navigator's <em>Focus tracks</em> and <em>Show all</em> are disabled (two tools must not fight over track visibility), and its <em>Restore</em> leaves the Director's entries alone. Do not save the project while a run is active unless you want that layout in the file: stop the run, then save.</p>
+<h3 id="director-keys-window-focused-director-tab">Keys (window focused, Director tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Ctrl+Enter</td><td>start / stop the run</td></tr>
+<tr><td>Esc</td><td>stop the run</td></tr>
+<tr><td>A</td><td>auto-follow on / off</td></tr>
+<tr><td>Left / Right</td><td>previous / next shot</td></tr>
+<tr><td>Home / End</td><td>first / last shot</td></tr>
+<tr><td>Up / Down, Enter</td><td>move the highlight, go to the highlighted shot</td></tr>
+<tr><td>E</td><td>edit the highlighted shot</td></tr>
+<tr><td>Space</td><td>play / stop</td></tr>
+<tr><td>Ctrl+R</td><td>validate</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+</tbody></table></div>
+<h2 id="hud">HUD</h2>
+<p>The HUD is the caption bar of the recording: a dockable window that shows the current shot, its caption for the viewer, a progress bar, the transport time and a loudness readout, and that paints the sync flashes a recorder needs. It listens to the Director: when a run starts the bar opens by itself (Auto-show) and follows the shots; when the run stops it closes again. It changes nothing in the project.</p>
+<figure class="narrow"><img src="images/hud.png" alt="The HUD tab; the bar itself docks at the bottom of REAPER during a run (see the Director run picture below)." loading="lazy"><figcaption>The HUD tab; the bar itself docks at the bottom of REAPER during a run (see the Director run picture below).</figcaption></figure>
+<h3 id="hud-the-bar">The bar</h3>
+<p>By default the bar opens in REAPER's bottom docker (the first docker whose position is "bottom"; drag the docker edge to make the bar taller) and remembers its dock and size per project. When that docker also holds the mixer, REAPER may leave the mixer switched off once the bar closes; the bar remembers the mixer's state when it opens and puts it back a few frames after it hides. Its content depends on the height:</p>
+<ul>
+<li><strong>compact</strong> (under 72 px, one row): shot number and name, the caption, the loudness digits and the time;
+</li>
+<li><strong>medium</strong> (72-96 px): the shot name row with the loudness block and the time on the right, the caption below;
+</li>
+<li><strong>tall</strong> (96 px and more): the caption on its own full-width row, up to two lines, the momentary loudness bar and, above 130 px with <em>Key hints</em> on, the rehearsal hints.
+</li>
+</ul>
+<p>The caption tries the font sizes in order (19, 17, 15 px; 15 to 12 px in the compact row) until it fits, wraps to a second line only in the tall tier, and ends with "..." only as the last resort (the cut never splits a character). Fonts are logical pixels: at 24 px for the shot name and 19 px for the caption the text stays readable after a recording is scaled to 1920 px wide. The palette is an on-camera one (dark neutral, amber shot name, cyan accents) and does not follow the app theme; every colour is a setting (<code>hud.colors.*</code>).</p>
+<p>The <strong>loudness block</strong> is fixed-width monospace so nothing jumps: <code>M</code> (momentary), <code>I</code> (integrated, highlighted in amber inside the target window, -14 LUFS +/- 0.5 by default) and <code>PK</code> (sample peak, yellow above -1 dBFS). Sources:</p>
+<ul>
+<li><em>Live</em>: REAPER's own master meter (<code>Track_GetPeakInfo</code> 1024 / 1025) with a gated integration in Stagehand (100 ms blocks, absolute gate -70, relative gate -10 LU, restarted when the position jumps back). It measures the master output and over-reads dense material by about half an LU when polled at 30 Hz; use it for the picture, not for a delivery figure.
+</li>
+<li><em>Curve</em>: a text file with <code>t M S I</code> rows (one per 100 ms; the recorder companion writes it from the delivered mix with <code>ffmpeg -af ebur128</code>), indexed by the play position - exact by construction. Default path: <code>&lt;project folder&gt;/Render/stagehand_ctl/lufs_curve.txt</code>; type another path in the HUD tab and press <em>Use</em>.
+</li>
+<li><em>Off</em>: no block.
+</li>
+</ul>
+<p><strong>Progress</strong>: a thin bar that fills with the shot, one dot per shot (the current one amber), or nothing. <strong>Time</strong>: minutes:seconds, the project timecode (h:m:s:f) or plain seconds, or off. <strong>Shot name</strong> and <strong>Key hints</strong> are toggles; keep the hints off for the recording.</p>
+<h3 id="hud-sync-flashes">Sync flashes</h3>
+<p><em>Arm + play</em> (F) starts the recorder's sync sequence: the whole bar paints white for 3 frames, stays dark for 6 frames, then the transport starts; when the play position passes the end (the last shot's end plus 0.17 s, or the project end, or a custom time) the bar paints white for 3 frames again and the transport stops. Every phase edge is logged with the wall time and the play position (<code>PLAY_REQUEST</code>, <code>FLASH_START</code>, <code>PLAY_CMD</code>, <code>PLAY_POS</code>, <code>PLAY_MOVING</code>, <code>FLASH_END</code>, <code>END</code>) so the recorder post (M5) can anchor the mix to the picture; on the test machines the engine reported "moving" 40-75 ms after the play command. <em>Stop</em> or Esc cancels the sequence and stops the transport.</p>
+<h3 id="hud-the-hud-tab">The HUD tab</h3>
+<p><em>Show bar</em> / <em>Hide bar</em> (H), <em>Dock bar</em> / <em>Float bar</em>, <em>Arm + play</em>, <em>Stop</em>; the settings described above as segmented controls; the curve file with <em>Load</em> and <em>Use</em>; and a readout of what the bar shows right now (size and tier, shot and caption, the four loudness values with their source, the flash phase and the end time).</p>
+<h3 id="hud-keys-window-focused-hud-tab">Keys (window focused, HUD tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>H</td><td>show / hide the bar</td></tr>
+<tr><td>F</td><td>arm and play with sync flashes (again: cancel)</td></tr>
+<tr><td>Esc</td><td>cancel the flash sequence</td></tr>
+<tr><td>Space</td><td>play / stop</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock the main window</td></tr>
+</tbody></table></div>
+<h2 id="glow">Glow</h2>
+<p>The Glow lights the arrange with the sound: a bitmap composited over the arrange view (js_ReaScriptAPI, install it through ReaPack) that is redrawn every frame while something plays and disappears when everything is quiet. The bitmap exists only while something is drawn (playback, a tail, a cut flash): a quiet arrange has nothing composited over it, so REAPER draws region drags and zooms on its own path. Nothing in the project changes; switching the glow off releases the bitmap. Without js_ReaScriptAPI the tab says so and the rest of Stagehand runs as usual.</p>
+<figure class="narrow"><img src="images/glow.png" alt="The Glow tab: mode, style, spark look, the live sliders and the overlay statistics." loading="lazy"><figcaption>The Glow tab: mode, style, spark look, the live sliders and the overlay statistics.</figcaption></figure>
+<h3 id="glow-what-it-draws">What it draws</h3>
+<p>For every track shown in the track panel (muted tracks stay dark) the items under the play head get:</p>
+<ul>
+<li>a <strong>fill</strong> whose brightness follows the track's own post-fader meter, normalised to the track's recent peak (an adaptive reference that sinks slowly, with a floor so quiet beds still pulse; instant attack, 30 dB/s release, gamma 1.6 so quiet moments stay dim);
+</li>
+<li>a 1 px <strong>outline</strong> a little stronger than the fill;
+</li>
+<li>in the <em>Bar</em> style a <strong>level bar</strong> from the item's bottom, driven by the take peaks of the item's own source (400 Hz peaks read directly from the media, unaffected by REAPER's meter ballistics);
+</li>
+<li><strong>sparks</strong>: on every onset (the level rose at least 6 dB above a fast-falling detector, at least 60 ms after the last one) a bright warm mark at the play head's x, decaying over 0.32 s. In the bar style the onset time comes from the take peaks, so a four-hit burst gives four sparks. Three looks (<em>Spark</em> in the tab): <em>Beam</em> (the default: a bright core with a soft halo on both sides, like a glowing play cursor), <em>Column</em> (a hard 3 px column with a short tail to the right) and <em>Trail</em> (a gradient growing from the onset to the play head, brightest at the head, with the beam core);
+</li>
+<li><strong>colour warming</strong>: the fill blends from the glow colour (white) towards the warm colour (amber) with the level.
+</li>
+</ul>
+<p>The most recently ended item keeps glowing for up to 2.5 s while the track still sounds (reverb tails). Rows without items (folders, buses, returns) get a <strong>level band</strong> along the bottom of the row. A marker of the <em>Cut</em> class the play head just crossed flashes a full-height line for 0.22 s. Sparks and flashes are blended over the fill by hand, so they never punch dark holes into the glow.</p>
+<p><strong>Modes</strong>: <em>Meter</em> (above), <em>Item</em> (the glow follows the item bounds only: a flash at the item start decaying to a low sustain, a release after the end, long items fainter; no meter needed) and <em>Off</em>. <strong>Styles</strong>: <em>Bar</em> (faint tint plus the level bar), <em>Fill</em> (a uniform tint that breathes with the meter), <em>Edge</em> (only the outline lights up).</p>
+<p><strong>Profiles</strong> tune the numbers per family (the families of the Navigator): the shipped <em>vocal</em> profile (Dialogue) is even (release 40 dB/s, 14 dB window, gamma 1.0, onset 5 dB, gap 90 ms), <em>music</em> is rhythmic (release 60, window 12, gamma 1.2, slower reference, gap 100 ms); every other track uses the main numbers. Profiles are edited in the Settings tab (Glow &gt; <em>Profiles</em>, a JSON editor with validation) and stored under <code>glow.profiles</code>.</p>
+<h3 id="glow-the-glow-tab">The Glow tab</h3>
+<p><em>Glow on</em> / <em>Glow off</em> (G), <em>Mode</em>, <em>Style</em> and <em>Spark</em>, four sliders with live preview (<em>Warm</em>, <em>Tint</em> or <em>Fill</em> depending on the style, <em>Bar</em>, <em>Spark</em>; the glow follows while you drag and the setting is written when you let go), the performance block, the profiles list and three footer buttons: <em>Fake meter</em> (synthetic levels from the item bounds for machines without audio - the test machines; the real meter is still read), <em>Evidence log</em> (one line per lit track per frame into <code>glow_meter.txt</code> in the Stagehand folder while playing) and <em>Reset perf</em>.</p>
+<h3 id="glow-performance-guard">Performance guard</h3>
+<p>The drawing time of every frame is measured (the tab shows the average, the maximum and the 95th percentile). Over the budget (2 ms) for 30 frames in a row the glow steps down: sparks off, then oversampling 1 instead of 2 (crisp on Retina, twice the pixels), then the bus band off; after 300 quiet frames it steps back up. On the test machines a frame costs 0.7-1.3 ms with 53 tracks and 2-6 lit rows; the guard was exercised with an impossible budget and recovered.</p>
+<h3 id="glow-keys-window-focused-glow-tab">Keys (window focused, Glow tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>G</td><td>glow on / off</td></tr>
+<tr><td>Space</td><td>play / stop</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock the main window</td></tr>
+</tbody></table></div>
+<h2 id="settings">Settings</h2>
+<p>Every knob of every module lives in one tab: <strong>Settings</strong> (also <code>Stagehand - Settings</code>, which opens the app on it). The tab is drawn from the configuration schema, so a setting can never be missing from it, and the full list with types, ranges and defaults is in <code>docs/config-reference.md</code> (generated from the same schema).</p>
+<figure class="narrow"><img src="images/settings.png" alt="Settings: every key from the schema with its control, tooltip and override dot; This project / Global layers." loading="lazy"><figcaption>Settings: every key from the schema with its control, tooltip and override dot; This project / Global layers.</figcaption></figure>
+<h3 id="settings-two-layers">Two layers</h3>
+<p>Values come from three places, merged in this order: the defaults built into Stagehand, the <strong>global</strong> file (<code>&lt;REAPER resource path&gt;/Stagehand/config.json</code>, every project) and the <strong>project</strong> overrides (stored in the project file with the rest of the project's state; only the keys you changed for this project). The <em>Edit</em> switch at the top picks which layer the controls write to: <em>This project</em> or <em>Global</em>. The number next to each is how many overrides that layer holds.</p>
+<p>A <strong>dot</strong> before a setting's name means it is overridden in the layer you are editing; a <strong>ring</strong> means the other layer sets it (the tooltip says to what). The <strong>x</strong> at the end of a row removes that override; the arrow icon on a group header resets the whole group in the current layer; the menu has <em>Reset everything in ...</em> for the layer. Nothing is ever reset without you asking, and resetting only removes overrides: the other layer and the defaults stay.</p>
+<h3 id="settings-controls">Controls</h3>
+<figure class="narrow"><img src="images/settings_search.png" alt="Search narrows the tab to the matching keys (&quot;spark&quot;)." loading="lazy"><figcaption>Search narrows the tab to the matching keys ("spark").</figcaption></figure>
+<p>Every row has a label, a control and a tooltip with the meaning, the range and unit, the default and the key. Toggles switch at once. Sliders preview while you drag (the Glow and the HUD follow live) and the file is written when you let go; Ctrl+click a slider to type a value. Choices are segmented buttons. Colours open a picker and take a <code>#RRGGBB</code> text. Comma lists (caption sizes, ruler lane ids) are typed as text and checked when you leave the field; a value that does not parse is shown in red under the row and not written. Families, marker classes and groups open their editors on the Navigator tab; pinned rows and glow profiles open a small JSON editor whose <em>Apply</em> is enabled only while the text is valid.</p>
+<p><strong>Search</strong> (Ctrl+F) filters by name, key or meaning across every module; Esc clears it. Modules fold and unfold by clicking their header (the state is remembered); a search unfolds everything that matches.</p>
+<h3 id="settings-presets">Presets</h3>
+<p>The <em>Presets</em> row lists the four shipped presets and your own (<code>&lt;REAPER resource path&gt;/Stagehand/presets/*.json</code>):</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Preset</th><th>What it sets</th></tr></thead>
+<tbody>
+<tr><td>Client showcase</td><td>focus layout, page view, bar without key hints, live loudness, beam glow with the cut flash</td></tr>
+<tr><td>Tutorial</td><td>the whole track tree stays, follow view with a longer window, key hints and timecode, a softer fill glow</td></tr>
+<tr><td>Quick navigation</td><td>fuzzy search, focus tracks on a scene jump, a tighter marker window, no bar, no glow</td></tr>
+<tr><td>Minimal glow</td><td>outlines only, faint sparks, no bus band or cut flash, oversampling off</td></tr>
+</tbody></table></div>
+<p><em>Apply</em> writes the preset's keys into the layer you are editing (other keys stay as they are). <em>Save...</em> stores the current layer's overrides under a name. <em>Import</em> reads any preset file (a copy lands in your presets folder); <em>Export</em> writes the current layer to a file, and the menu can export the whole effective configuration. A preset is a JSON file with a header and a partial config tree (format in the reference); a preset written by an older Stagehand is migrated when it is read, and one with an invalid value is listed with the problem and cannot be applied until the file is fixed.</p>
+<h3 id="settings-problems-not-silent-repairs">Problems, not silent repairs</h3>
+<p>When a layer holds a value Stagehand cannot use (wrong type, outside its range, an unknown choice, a broken entry in a list) the tab shows a panel at the top: the layer, the key, the value and why. The value is left out of the effective settings (the default applies) but <strong>the file is not rewritten</strong>: <em>Use default</em> removes just that value when you decide so, <em>Show</em> finds the key in the list. Unknown keys are kept and listed for information, so a file from a newer version loses nothing.</p>
+<h3 id="settings-updates">Updates</h3>
+<p>The layers carry a schema version. When Stagehand moves or renames a key, the file is migrated on load and the migration is listed in the panel once; the global file is backed up first (<code>config.json.schema&lt;N&gt;.bak</code>). Schema 1 (the M1-M3 builds) to 2: <code>navigator.layout.compact_below_px</code> became <code>ui.compact_below_px</code> (it applies to every tab).</p>
+<h3 id="settings-keys-window-focused-settings-tab">Keys (window focused, Settings tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Ctrl+F</td><td>search field</td></tr>
+<tr><td>Esc</td><td>clear the search</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+</tbody></table></div>
+<h3 id="settings-tips">Tips</h3>
+<ul>
+<li>Docked low (under 430 px), the Navigator switches to the compact layout: smaller rows, no family row, no hint line. Undock or enlarge the docker to reach the chips.
+</li>
+<li>The lists refresh on every project change; if something looks stale, Ctrl+R.
+</li>
+<li>Do not save the project while a scene solo, scene mute or focus is active unless you want that state in the file; <em>Restore</em> first, then save.
+</li>
+<li>For a recording: dock the HUD at the bottom and make the docker about 90 px tall (medium tier), switch <em>Key hints</em> off, keep the Glow in Meter / Bar, hide the Stagehand window (or dock it out of the picture) and start with <em>Arm + play</em> so the recorder can find the flashes.
+</li>
+</ul>
+<h2 id="overview">Overview</h2>
+<p>One tall picture of the whole session: the track panel, the ruler and the arrange from the first track to the last, every used automation lane open, nothing else on screen. Stagehand lays the session out, a companion script (or you, with any screenshot tool) captures the arrange page by page, and a stitcher pastes the pages at their real scroll offsets. Everything the layout changes is journaled and put back.</p>
+<figure class="narrow"><img src="images/overview.png" alt="The Overview tab: row heights, the hide rule, the range and the capture / guided mode buttons." loading="lazy"><figcaption>The Overview tab: row heights, the hide rule, the range and the capture / guided mode buttons.</figcaption></figure>
+<h3 id="overview-the-layout">The layout</h3>
+<p><em>Apply layout</em> (Ctrl+Enter) does, in one frame: the mixer closed, the master row taken out of the track panel, the video window closed (each a setting), every track shown at one locked height (<code>overview.track_px</code>, 34 px) with the folders opened and the pins off, tracks matching the <em>Hide</em> rule left out (<code>^GUIDE|=REF</code>: starts with, equals, contains; <code>|</code> separates), every <strong>used</strong> envelope lane open at one height (<code>overview.env_lane_px</code>, 26 px; used = at least <em>Min points</em> points or an automation item), the other lanes closed, the view from 0 to the end (the last video item, the project length, or a custom time, plus a pad), scrolled to the top. The summary under the buttons says what happened: rows shown and hidden, lanes open and closed, the view end and why, the picture size in logical pixels, how many pages the capture needs. <em>Restore</em> (the same button) puts everything back; so does closing Stagehand, a frame error or REAPER's exit.</p>
+<h3 id="overview-capturing-with-the-companion">Capturing with the companion</h3>
+<p>Save the project first (the companions talk through <code>&lt;project folder&gt;/Render/stagehand_ctl/</code>), keep Stagehand running, then in a terminal:</p>
+<pre><code>python3 tools/overview_capture.py --ctl &quot;&lt;the folder shown in the tab&gt;&quot;</code></pre>
+<p><em>Copy command</em> puts the exact line on the clipboard. The driver asks Stagehand to apply the layout (Stagehand's own window hides so it never covers the arrange), reads the screen crop, scrolls one page at a time (Stagehand answers each scroll after the redraw), captures the crop with the first tool that works on your system (macOS <code>screencapture</code>, Pillow, Linux <code>scrot</code> or ImageMagick, Windows PowerShell), asks for the restore and stitches the pages into <code>Render/overview_&lt;date&gt;/Session_Overview.png</code> plus a half-size copy. Retina and HiDPI screens come out in native pixels (the stitcher measures the scale from the PNG width); <code>overview.output.dpi_mode = logical</code> scales the result down. On macOS the capture path is experimental in this release: it works on the developer's machine, and it was verified on Linux and Windows.</p>
+<h3 id="overview-guided-capture-any-screenshot-tool">Guided capture (any screenshot tool)</h3>
+<p><em>Guided capture</em> (G) is the fallback when no companion runs: Stagehand applies the layout, hides its window, writes <code>pages.txt</code> and <code>geometry.txt</code> into the output folder and shows a small counter window (<em>Page 1 of 6</em>). Capture the REAPER window with whatever you like (Shift+Cmd+4 then Space on macOS, Win+Shift+S, a screenshot app), press <em>Next</em> (Space, N or the right arrow), repeat; <em>Done</em> on the last page restores the session. <code>overview.guided.auto_s</code> makes the pages advance by themselves for a screen recorder. Then put the screenshots into the folder as <code>page_00.png</code>, <code>page_01.png</code>, ... and run:</p>
+<pre><code>python3 tools/overview_stitch.py &quot;&lt;Render/overview_&lt;date&gt;&gt;&quot;</code></pre>
+<p>The stitcher recognises whole-window screenshots by their width and crops them itself (<code>--window</code> forces it).</p>
+<h3 id="overview-keys-window-focused-overview-tab">Keys (window focused, Overview tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Ctrl+Enter</td><td>apply / restore the layout</td></tr>
+<tr><td>G</td><td>guided capture</td></tr>
+<tr><td>Space, N, right arrow / P, left arrow / Esc</td><td>next / previous page / stop (counter window focused)</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+</tbody></table></div>
+<h2 id="recorder">Recorder</h2>
+<p>The Recorder tab is where a recording session is prepared and driven: the <strong>control protocol</strong> for the companion scripts, a <strong>checklist</strong> of what should be true before the take, the <strong>screen layout at start</strong> (monitor, main window, video window, a named window into a docker), <strong>Arm / Play / Stop</strong> by hand, and the <strong>shot-list export</strong>. It never requires the other modules: the Director run, the HUD bar and the Glow are driven through commands and events, so each works without the others.</p>
+<figure class="narrow"><img src="images/recorder.png" alt="The Recorder tab: arm / play / stop, the checklist and the control protocol panel." loading="lazy"><figcaption>The Recorder tab: arm / play / stop, the checklist and the control protocol panel.</figcaption></figure>
+<h3 id="recorder-arm-play-stop">Arm, play, stop</h3>
+<p><em>Arm</em> (A) puts the edit cursor at <code>recorder.arm.cursor_s</code> (0), starts the Director run when there are shots (the first shot is laid out before the flash), shows the HUD bar, applies the screen layout when <code>recorder.layout.apply</code> is on, and writes the <code>hud</code> file (the bar's painted rect, the full monitor and the work area in logical pixels): the recorder post needs it to find the flashes. <em>Play</em> (F) is the HUD's sync sequence (white frames, dark gap, play, white frames at the end, stop); <em>Stop</em> (Esc) cancels it. The badge in the header shows ARMED and FLASH.</p>
+<h3 id="recorder-the-checklist">The checklist</h3>
+<p>Live rows, refreshed twice a second: the ctl folder (a saved project), js_ReaScriptAPI, the shot list and its validation, the main window size against <code>recorder.checklist.min_w/min_h</code>, the mixer hidden, the video window as the layout wants it, the HUD bar on screen (size, tier, docked), the loudness curve when the HUD uses one, the Glow, the transport stopped, the cursor at the arm position, and two reminders (screen sleep and notifications; the recorder permission or ffmpeg). Rows with a <em>Fix</em> button apply it through the journal (hide the mixer, show the bar, stop), so <em>Restore</em> puts them back.</p>
+<h3 id="recorder-screen-layout-at-start">Screen layout at start</h3>
+<p><em>Layout</em> (L) lays the screen out for the take and <em>Unlayout</em> puts it back (js_ReaScriptAPI needed): the monitor (the one holding the main window, the largest, or a number), the main window (kept, filling the monitor work area, or a custom size centred), the video window (shown and placed in a corner, over the track panel, over the arrange top-right, or <em>fit</em>: 16:9 sized to the space above the tracks; REAPER re-applies its own saved rect when the window first shows, so Stagehand places it a few frames later and reads it back 1.5 s after), and a named script window sent to a docker (<code>recorder.layout.dock_window</code>: the window's dock ident, the action that opens it, the docker position; a script cannot create a docker - when no docker has that position the diary says so). Every step is written to the <strong>layout diary</strong> (<code>layout.txt</code> in the ctl folder and the log): what was wanted and what REAPER did; it is the only way to debug a layout on another machine. Window rects, docker ids and toggles are journaled and restored.</p>
+<h3 id="recorder-the-control-protocol">The control protocol</h3>
+<p><code>&lt;project folder&gt;/Render/stagehand_ctl/</code> (or <code>recorder.ctl.dir</code>): a driver writes one line into <code>cmd</code>, Stagehand reads and deletes it every <code>recorder.ctl.poll_frames</code> frames and appends replies to <code>state</code> as <code>&lt;time_precise&gt; TOKEN key=value ...</code>. Verbs: <code>ping</code> (PONG), <code>arm</code> (ARMED with the shot count, the end time, whether the run and the bar are up), <code>play</code>, <code>stop</code> (STOPPED), <code>quit</code> (stop, Director run and layout restored, QUIT), <code>rect</code> (every rect the layout relies on), <code>hud</code> (write the hud file), <code>layout</code> / <code>unlayout</code>, <code>vid x y w h</code> (place the video window), <code>glow on|off</code>, <code>shots [csv]</code> (export), <code>goto &lt;s&gt;</code>, and the Overview's <code>overview apply | rect | scroll &lt;px&gt; | pages | restore</code>. While a run is armed the HUD's flash tokens (<code>PLAY_REQUEST</code>, <code>FLASH_START</code>, <code>PLAY_CMD</code>, <code>PLAY_POS</code>, <code>PLAY_MOVING</code>, <code>FLASH_END</code>, <code>END</code>, with the play position) and <code>SHOT k=.. name=..</code>, <code>DIRECTOR_START</code> / <code>DIRECTOR_STOP</code> are mirrored into <code>state</code>. The protocol panel of the tab shows the folder, the companion command for the project, the last command and the last token.</p>
+<h3 id="recorder-recording-with-the-companion">Recording with the companion</h3>
+<pre><code>python3 tools/record_showcase.py --ctl &quot;&lt;the ctl folder&gt;&quot; --mix &quot;&lt;the delivered mix.wav&gt;&quot;</code></pre>
+<p>The driver pings Stagehand, writes the loudness curve of the mix for the HUD (ffmpeg), arms, starts the screen capture (macOS <code>screencapture -v</code> with the display found by its size, or <code>ffmpeg</code> x11grab / gdigrab, or a Pillow frame loop for a sync check without ffmpeg), waits 2.5 s, plays, waits for <code>END</code>, stops the capture, sends <code>quit</code> and runs the post: <code>showcase_post.py</code> finds the two flashes in the recording (the brightness of the bar's crop per frame), anchors mix time 0 on the <strong>end flash</strong> (start and moving anchors are reported too; the difference is the engine start latency, 40-90 ms on the test machines), lays the mix under the picture, writes a native and a 1920 px wide MP4 and <code>report.json</code> / <code>report.md</code>. <code>--dry 5</code> records five seconds without playback to check the permission and the display. <code>tools/README.md</code> documents the sync method and every option. On macOS the driver is experimental in this release (verified by the developer, not on the test machines).</p>
+<h3 id="recorder-obs-recipe-no-scripts">OBS recipe (no scripts)</h3>
+<ol>
+<li>Scene with one <strong>Display Capture</strong> source of the monitor Stagehand lays out (not a window capture: the video window and the HUD bar are separate windows). Output 60 fps, canvas = the monitor, no audio track.
+</li>
+<li>Encoder: x264 CRF 16-18 (or NVENC / VideoToolbox CQP 16), MKV container (remux later); keep the recording folder on a fast disk.
+</li>
+<li>Stagehand: <em>Arm</em>, wait for the bar, start the OBS recording, then <em>Play</em> (or let <code>record_showcase.py --backend frames</code> drive only the protocol). Stop OBS after the end flash.
+</li>
+<li>Post: <code>python3 tools/showcase_post.py &quot;&lt;take.mkv&gt;&quot; --state &quot;&lt;ctl&gt;/state&quot; --hud &quot;&lt;ctl&gt;/hud&quot; --mix &quot;&lt;mix.wav&gt;&quot; --out &quot;&lt;folder&gt;&quot;</code> - the same anchors and outputs as with the driver.
+</li>
+</ol>
+<h3 id="recorder-shot-list-export-and-import">Shot-list export and import</h3>
+<p><em>Export</em> (E for JSON) writes the Director's shot list next to the project (<code>Render/&lt;project&gt;_shots.json</code> or <code>.csv</code>, or a file you pick when js_ReaScriptAPI is installed): JSON carries the whole shot model plus timecodes for tools; CSV has one row per shot (index, name, start, end, duration in seconds, timecode or m:ss by <code>recorder.export.time_format</code>, timecode columns, both captions, lane and envelope rules, view, parents) for spreadsheets and editors' notes. <em>Import (replace / append)</em> reads a JSON export back into the shot list.</p>
+<h3 id="recorder-keys-window-focused-recorder-tab">Keys (window focused, Recorder tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>A</td><td>arm</td></tr>
+<tr><td>F</td><td>play with sync flashes</td></tr>
+<tr><td>Esc</td><td>stop</td></tr>
+<tr><td>L</td><td>layout / unlayout</td></tr>
+<tr><td>E</td><td>export the shot list (JSON)</td></tr>
+<tr><td>Space</td><td>play / stop</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+</tbody></table></div>
+<h2 id="stems">Stems</h2>
+<p>The Stems tab runs a <strong>stem delivery</strong>: a list of named solo / mute states of the track list, each rendered through the master one at a time with render settings Stagehand owns, into files named by a pattern, with a <strong>pre-flight</strong> that refuses everything REAPER would stop and ask about, and a <strong>results page</strong> after the batch (peak, loudness, length, silent stems). It never requires the other modules; the families come from the same rules the Navigator uses.</p>
+<figure class="narrow"><img src="images/stems.png" alt="Stems: the set built from families plus a full mix, format / range / name / folder, the variant buttons." loading="lazy"><figcaption>Stems: the set built from families plus a full mix, format / range / name / folder, the variant buttons.</figcaption></figure>
+<h3 id="stems-a-stem">A stem</h3>
+<p>A stem is a name plus one cell per track: <strong>S</strong> (solo in place, sends and returns follow), <strong>I</strong> (solo ignore routing) or <strong>M</strong> (mute); tracks without a cell are not soloed. A stem without any cell is the <strong>full mix</strong>. When the batch applies a stem it writes the solo state of <em>every</em> track (a temporary solo of yours is cleared for the render and put back after) and mutes only the tracks with an M cell (a track you muted stays muted). A stem may carry its own <strong>range</strong> (a scene stem renders its region) and a <strong>variant</strong>: <em>through master</em> (as the mix), <em>master FX bypassed</em>, or <em>dry</em> (every send muted); the toggles are journaled and restored after each stem.</p>
+<h3 id="stems-building-the-set">Building the set</h3>
+<figure class="mid"><img src="images/stems_matrix.png" alt="The matrix editor: one row per stem, one column per track, cells S / I / M." loading="lazy"><figcaption>The matrix editor: one row per stem, one column per track, cells S / I / M.</figcaption></figure>
+<p><em>Add stems</em> offers the bulk builders: <strong>one stem per family</strong> (the Navigator's families; a folder belongs to the family of its top ancestor), <strong>one stem per top folder</strong> (the folder track soloed in place plays its children; <code>stems.bulk. folder_children</code> marks the children too), <strong>one stem from the selected tracks</strong>, <strong>one mix per scene</strong> (full mix, the region as the range), <strong>capture the current solo / mute state</strong>, and an empty full-mix stem. Names are made unique ("Music 2") because the file names come from them. The <strong>matrix</strong> (M, or the pencil of a row) edits the cells: tracks in rows with their family dot and folder indent (the column is as wide as the longest name, up to 60 % of the editor, and its border can be dragged), stems in numbered columns, a click cycles off -&gt; S -&gt; I -&gt; M, right-click clears, a filter narrows the rows; Save writes the cells, Cancel drops them. Double-click a row to rename, Space toggles <em>enabled</em> (a disabled stem stays in the list and out of the batch), the row menu sets the variant and the range (none, the time selection, a scene), moves, duplicates and removes.</p>
+<p>The set lives in the project (saved with it). With <code>stems.membership.write_tracks</code> on (default) every track also carries its cells in its extension state, so a <strong>track template</strong> made from it remembers its stems: <em>Adopt membership from tracks</em> (also run when a project opens) puts a track inserted from such a template back into the stems of the same names. <strong>Presets</strong> (<em>Stem set presets</em> in the Add menu) save the whole set as a file in <code>&lt;resource&gt;/Stagehand/stems/</code> and load it into another project: tracks are re-found by GUID first, then by name; the message says how many were found.</p>
+<h3 id="stems-render-settings">Render settings</h3>
+<p>The quick row: <strong>format</strong> (WAV 16 / 24-bit / 32-bit float, FLAC or MP3 with REAPER defaults, or the project's own render format), <strong>range</strong> (<em>stem</em> = a stem's own range when it has one, else the fallback in Settings: project by default; <em>project</em>; <em>time sel</em>; <em>custom</em> start .. end), <strong>existing files</strong> (<em>replace</em>: the file is deleted before the render; <em>number</em>: <code>name_2</code>, <code>name_3</code>...; <em>skip</em>: the stem is skipped - REAPER's own overwrite prompt would block an unattended batch, so Stagehand decides before the render), the file <strong>name</strong> pattern and the <strong>folder</strong> (relative to the project, <code>Render/stems</code> by default, or absolute). The pattern knows <code>$stem</code>, <code>$stemnumber</code> (01, 02...), <code>$scene</code> and <code>$variant</code>; <code>$project</code>, <code>$date</code>, <code>$time</code> and REAPER's other wildcards are left to REAPER. With more than one stem the pattern must contain <code>$stem</code>, <code>$stemnumber</code> or <code>$scene</code>. Sample rate, channels, tail, normalisation (LUFS-I / -M max / -S max / peak / true peak to a target) and dither live in Settings &gt; Stems. The batch writes these settings into the project through the journal and puts the project's own render settings back when it ends; the render source is always the master mix (never REAPER's stems mode or the region matrix, which are unreliable from scripts).</p>
+<h3 id="stems-pre-flight-and-the-batch">Pre-flight and the batch</h3>
+<p><em>Pre-flight</em> (P) lists what a batch would meet: the folder as REAPER resolves it (an unsaved project with a relative folder is an error), the enabled stems, the pattern, stems whose tracks are gone or partly missing, an empty range (REAPER would show "Nothing to render"), two stems writing the same file, files that exist and what the policy does with them, the transport (recording is an error; playing is stopped with <em>Fix</em>), whether REAPER's render statistics are on, and notes about the format and the variants. <em>Render</em> (Ctrl+Enter) runs the pre-flight and refuses to start on an error. The batch then goes stem by stem in the window's own loop: apply the cells and the variant (journaled), write the settings, defuse the file by policy, render with REAPER's "render using the most recent settings" action (synchronous: the script resumes when the file is written), measure the file, put the state back, wait a few frames, next. The strip shows the stem, the phase and a progress bar; <em>Stop</em> (Esc) ends the batch after the current stem. <em>Render one</em> renders the highlighted stem. A frame error, the Restore menu entry, closing the window and REAPER's exit drop the batch and restore everything it changed.</p>
+<h3 id="stems-results">Results</h3>
+<figure class="narrow"><img src="images/stems_results.png" alt="The results page: one row per rendered file with peak, loudness and the action taken." loading="lazy"><figcaption>The results page: one row per rendered file with peak, loudness and the action taken.</figcaption></figure>
+<p><em>Results</em> (R) shows the last batch: per stem the status dot (ok, silent, error, skipped), the file, the sample peak in dBFS (scanned by Stagehand for WAV files, exact), the integrated loudness and the length; <em>Open</em> opens the folder (SWS) or copies its path, <em>Copy</em> puts the table on the clipboard as Markdown. <code>stems_results.json</code> is always written next to the stems, <code>.csv</code> and <code>.md</code> by <code>stems.export.results</code>. Loudness (LUFS-I, LUFS-M max, LUFS-S max, LRA) and REAPER's own peak come from <strong>REAPER's render statistics</strong>, which need the preference <em>Preferences &gt; Rendering &gt; Stats/Charts &gt; save render statistics</em>: with SWS installed Stagehand switches it on for the batch and back after (<code>stems.results.reaper_stats</code>); without it the pre-flight says how to enable it and the results carry Stagehand's peak and length only. A stem whose peak is at or below <code>stems.results.silent_below_db</code> (-90 dBFS) is flagged <strong>silent</strong> (a solo state that plays nothing in the range). <code>tools/stems_check.py --results &lt;folder&gt;/stems_results.json</code> measures every WAV independently (peak, length, LUFS-I with numpy; ffmpeg ebur128 too when present) and reports the differences.</p>
+<h3 id="stems-restore-nothing-is-left-behind">Restore: nothing is left behind</h3>
+<p>Solo and mute values, the master FX enable, send mutes and every RENDER_* value the batch wrote are journal entries (owner <code>stems</code>) restored after each stem or the batch, on Stop, on an error and at exit; a solo you set yourself before the batch comes back as it was (kept semantics). The stems folder and its files are the only thing that stays.</p>
+<h3 id="stems-keys-window-focused-stems-tab">Keys (window focused, Stems tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Ctrl+Enter</td><td>render the enabled stems / stop</td></tr>
+<tr><td>Esc</td><td>stop after the current stem</td></tr>
+<tr><td>M</td><td>matrix editor</td></tr>
+<tr><td>P</td><td>pre-flight</td></tr>
+<tr><td>R</td><td>results panel</td></tr>
+<tr><td>Space</td><td>enable / disable the highlighted stem</td></tr>
+<tr><td>Up / Down</td><td>highlight</td></tr>
+<tr><td>Delete</td><td>remove the highlighted stem</td></tr>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+</tbody></table></div>
+<h2 id="agent-access">Agent access</h2>
+<p>An AI agent (Claude, ChatGPT, anything that speaks MCP) can read the open session and drive Stagehand from a conversation: "what is in this session", "go to the fight scene", "solo scene 4", "start the showcase", "set the lead time to half a second", "render the stems and tell me how loud the music was". Nothing an agent does saves the project; every change it makes goes through the same journaled paths as your clicks and is restored like them.</p>
+<figure class="narrow"><img src="images/agent.png" alt="The Agent tab: the connected agent, the last commands, the three switches and the install snippets." loading="lazy"><figcaption>The Agent tab: the connected agent, the last commands, the three switches and the install snippets.</figcaption></figure>
+<h3 id="agent-access-how-it-works">How it works</h3>
+<p>The Recorder's control protocol (the <code>cmd</code> / <code>state</code> files in <code>&lt;project&gt;/Render/stagehand_ctl</code>) grew agent verbs that answer with JSON files (<code>reply_N.json</code>, named in the token line): <code>hello &lt;name&gt;</code>, <code>verbs</code>, <code>state</code>, <code>census</code>, <code>shotlist</code>, <code>stemset</code>, <code>results</code>, <code>config get &lt;key&gt; | list [prefix] | set &lt;key&gt; &lt;value&gt; [project|global] | reset &lt;key&gt; [scope]</code>, <code>nav jump scene|marker|time ... | solo &lt;scene&gt; | mute &lt;scene&gt; | clear | restore</code>, <code>director start | stop | goto &lt;k&gt; | next | prev | auto on|off | validate</code>, <code>command &lt;name&gt;</code> (the app commands: <code>glow_off</code>, <code>hud_show</code>, <code>overview_apply</code>, ...). The package ships an MCP server (<code>agent/stagehand_mcp.py</code>, Python 3, standard library only, stdio) that exposes them as typed tools, and a skill (<code>agent/skills/stagehand/SKILL.md</code>) that teaches an agent the workflow: read first, ask before changing anything, never save, confirm a render with you in the conversation.</p>
+<p>While Stagehand runs it refreshes a discovery file, <code>&lt;home&gt;/.stagehand/agent.json</code>, with the ctl folder of the open project, so the server needs no arguments and follows the project you switch to. An unsaved project has no ctl folder (the tab says so); <code>agent.discovery = off</code> stops the file, then the server takes <code>--ctl &lt;folder&gt;</code> or <code>--project &lt;file.RPP&gt;</code>.</p>
+<h3 id="agent-access-install-the-server-in-your-agent">Install the server in your agent</h3>
+<p>The Agent tab shows the installed paths and copies the two forms most agents take:</p>
+<ul>
+<li>Claude Code: <code>claude mcp add stagehand -- python3 &quot;&lt;path&gt;/Stagehand/agent/stagehand_mcp.py&quot;</code> (Copy "claude mcp add").
+</li>
+<li>Claude Desktop, Cursor and others: the <code>mcpServers</code> snippet (Copy MCP config) pasted into the agent's MCP configuration file.
+</li>
+</ul>
+<p>Copy the skill folder into your agent's skills (<code>.claude/skills/</code> of a project or <code>~/.claude/skills/</code>) with the path the tab copies. Then ask the agent about the session; the first tool call says hello and the tab shows the agent's name, when it connected, how many commands it sent and how many were refused, and the last commands with their tokens.</p>
+<h3 id="agent-access-the-three-switches">The three switches</h3>
+<ul>
+<li><strong>Agent access</strong> (<code>agent.enable</code>): the agent verbs answer. Off: every agent verb is refused (<code>ERROR ... refused: agent access is off</code>); the companions' own verbs (<code>ping</code>, <code>arm</code>, <code>play</code>, <code>rect</code>, ...) keep working.
+</li>
+<li><strong>Allow changes</strong> (<code>agent.allow_changes</code>): anything that changes the project or the screen, from any driver: jumps, scene solo / mute, Director runs, commands, <code>config set</code> / <code>reset</code>, <code>arm</code>, <code>play</code>, <code>layout</code>, <code>vid</code>, <code>glow</code>, <code>goto</code>, <code>overview apply</code>, <code>stems render</code>. Off: reads only. <code>stop</code>, <code>quit</code>, <code>unlayout</code>, <code>overview restore</code> and <code>nav restore</code> always work - a driver must always be able to put things back.
+</li>
+<li><strong>Allow renders</strong> (<code>agent.allow_render</code>): <code>stems render</code> may start a batch (needs Allow changes too). The MCP tool refuses on its own until the agent passes <code>confirm=true</code>, which the skill tells it to do only after your clear yes.
+</li>
+</ul>
+<p>The switches are global settings (they follow you, not the project). A refusal names the switch in the ERROR line and the agent is told to stop, not to work around it.</p>
+<h3 id="agent-access-the-tools-an-agent-sees">The tools an agent sees</h3>
+<p><code>stagehand_status</code> (read this first: project, transport, every module's state, the journal counts, the switches), <code>stagehand_census</code> (tracks with families, scenes, markers, families, groups), <code>stagehand_shots</code> (the shot list with the validator's issues), <code>stagehand_stems</code> (the stem set and the render settings), <code>stagehand_results</code> (the last batch, per stem), <code>stagehand_config</code> (get / list / set / reset with the schema's ranges enforced), <code>stagehand_jump</code> (scene by name, part or number; marker; time), <code>stagehand_scene</code> (solo / mute / clear / restore), <code>stagehand_director</code> (start / stop / goto / next / prev / auto / validate), <code>stagehand_command</code>, <code>stagehand_stems_render</code> (<code>confirm=true</code> required; <code>stop=true</code> cancels), <code>stagehand_verbs</code>, <code>stagehand_raw</code> (any protocol line and the token to wait for) and <code>stagehand_connect</code> (a specific ctl folder or project instead of the discovered one).</p>
+<h3 id="agent-access-keys-window-focused-agent-tab">Keys (window focused, Agent tab)</h3>
+<div class="table-wrap"><table>
+<thead><tr><th>Key</th><th>Action</th></tr></thead>
+<tbody>
+<tr><td>Ctrl+D</td><td>dock / undock</td></tr>
+</tbody></table></div>
+<h2 id="support-the-development">Support the development</h2>
+<p>Stagehand is free and open source. If it earns its place in your sessions, consider supporting its development: <a href="https://ko-fi.com/quickmd">Ko-fi</a>, <a href="https://buymeacoffee.com/bsroczynskh">Buy Me a Coffee</a> or <a href="https://paypal.me/b451c">PayPal</a>. The About tab has the same three buttons: with SWS installed they open your browser, without it the link is copied to the clipboard. Bug reports and ideas: GitHub Issues of the repository named in the README.</p>
+<figure class="narrow"><img src="images/about.png" alt="The About tab with the three support buttons." loading="lazy"><figcaption>The About tab with the three support buttons.</figcaption></figure>
+<div class="footer">Stagehand is a <a href="https://falami.studio">falami.studio</a> tool by Bartosz Sroczynski &middot; MIT licence &middot; <a href="https://github.com/b451c/Stagehand">github.com/b451c/Stagehand</a><br>
+Support the development: <a href="https://ko-fi.com/quickmd">Ko-fi</a> &middot; <a href="https://buymeacoffee.com/bsroczynskh">Buy Me a Coffee</a> &middot; <a href="https://paypal.me/b451c">PayPal</a></div>
+</main>
+</div>
+<div class="scroll-top" id="top" title="Back to top">&uarr;</div>
+<script>
+const links=[...document.querySelectorAll('.sidebar a[href^="#"]')];
+const targets=links.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+function mark(){let cur=null;const y=window.scrollY+90;for(const t of targets){if(t.offsetTop<=y)cur=t;}
+ links.forEach(a=>a.classList.toggle('active',cur&&a.getAttribute('href')==='#'+cur.id));
+ document.getElementById('top').classList.toggle('visible',window.scrollY>600);}
+window.addEventListener('scroll',mark,{passive:true});mark();
+document.getElementById('top').addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
+</script>
+</body>
+</html>

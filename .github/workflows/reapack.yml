@@ -1,0 +1,43 @@
+name: Build ReaPack index
+
+# Rebuilds index.xml from the header of Stagehand/Stagehand.lua on every push to main (reapack/build_index.py, standard
+# library only) with the pushed commit pinned in the source URLs, and commits it back when it changed. Users import
+# https://raw.githubusercontent.com/b451c/Stagehand/main/index.xml
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'index.xml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Check the package header and the provided files
+        run: python3 reapack/build_index.py --check
+
+      - name: Build index.xml
+        run: python3 reapack/build_index.py --commit "$GITHUB_SHA"
+
+      - name: Commit the index
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          if git diff --quiet -- index.xml; then echo "index.xml unchanged"; exit 0; fi
+          git add index.xml
+          git commit -m "ReaPack index for ${GITHUB_SHA::7} [skip ci]"
+          git push

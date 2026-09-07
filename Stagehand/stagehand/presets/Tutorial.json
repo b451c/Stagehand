@@ -1,0 +1,35 @@
+{
+  "stagehand_preset": {
+    "name": "Tutorial",
+    "description": "For a walkthrough video: the whole track tree stays visible, follow view with a longer window, key hints and timecode on the bar, a softer fill glow with column sparks.",
+    "stagehand_version": "0.1.0-dev",
+    "schema": 2,
+    "created": "2026-09-07"
+  },
+  "config": {
+    "director": {
+      "layout": { "mode": "all", "parents": "all" },
+      "timing": { "lead_s": 0.6 },
+      "view": { "mode": "follow", "follow_len_s": 8, "anim_s": 0.45, "easing": "ease_out" },
+      "envelopes": { "mode": "keep" }
+    },
+    "hud": {
+      "show_hints": true,
+      "show_time": true,
+      "time_format": "timecode",
+      "loudness": { "mode": "live" },
+      "progress": { "style": "dots" }
+    },
+    "glow": {
+      "mode": "meter",
+      "style": "fill",
+      "warm_amount": 0.3,
+      "spark": { "style": "column", "alpha": 0.6 },
+      "cut_flash": { "enable": false }
+    },
+    "navigator": {
+      "jump": { "time_selection": true, "focus_tracks": false },
+      "search": { "fuzzy": true }
+    }
+  }
+}

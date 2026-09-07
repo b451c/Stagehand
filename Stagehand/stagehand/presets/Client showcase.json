@@ -1,0 +1,39 @@
+{
+  "stagehand_preset": {
+    "name": "Client showcase",
+    "description": "A clean recording for a client: focus layout, page view, the caption bar without key hints, live loudness, the beam glow with the cut flash.",
+    "stagehand_version": "0.1.0-dev",
+    "schema": 2,
+    "created": "2026-09-07"
+  },
+  "config": {
+    "director": {
+      "layout": { "mode": "focus", "parents": "none" },
+      "timing": { "lead_s": 0.4 },
+      "view": { "mode": "page", "pad_before_s": 0.6, "pad_after_s": 0.5, "anim_s": 0.3, "easing": "smoothstep" },
+      "envelopes": { "mode": "story" },
+      "scroll": { "disable_continuous": true }
+    },
+    "hud": {
+      "enable": true,
+      "auto_show": true,
+      "show_hints": false,
+      "show_time": true,
+      "time_format": "min_sec",
+      "loudness": { "mode": "live" },
+      "progress": { "style": "bar" }
+    },
+    "glow": {
+      "enable": true,
+      "mode": "meter",
+      "style": "bar",
+      "warm_amount": 0.55,
+      "spark": { "style": "beam", "alpha": 0.75 },
+      "cut_flash": { "enable": true },
+      "bus": { "enable": true }
+    },
+    "navigator": {
+      "jump": { "time_selection": true, "focus_tracks": false }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "stagehand_preset": {
+    "name": "Quick navigation",
+    "description": "Session work without the show: fuzzy search, focus tracks on a scene jump, a tighter marker window, the caption bar stays closed and the glow is off.",
+    "stagehand_version": "0.1.0-dev",
+    "schema": 2,
+    "created": "2026-09-07"
+  },
+  "config": {
+    "navigator": {
+      "search": { "fuzzy": true },
+      "jump": { "time_selection": true, "focus_tracks": true, "marker_window_s": 1.5, "zoom_pad_frac": 0.04 },
+      "audition": { "loop": false, "last_marker_len_s": 4 }
+    },
+    "hud": {
+      "auto_show": false
+    },
+    "glow": {
+      "enable": false
+    }
+  }
+}
