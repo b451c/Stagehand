@@ -498,7 +498,7 @@ def serve(conn):
                 out.flush()
 
 
-# --- the self-test (the leg companion) ------------------------------------------------------------------------------------------
+# --- the self-test (the test companion) ------------------------------------------------------------------------------------------
 
 def selftest(conn, out_path, log):
     server = Server(conn)

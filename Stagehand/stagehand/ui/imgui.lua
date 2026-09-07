@@ -3,7 +3,7 @@
 -- Preferred: the shim shipped with ReaImGui (`imgui.lua` next to the extension, present on ReaPack installs)
 --   package.path = reaper.ImGui_GetBuiltinPath() .. '/?.lua'; local ImGui = require 'imgui' '0.10'
 -- Fallback: a metatable over the reaper.ImGui_* functions (present when the binary was copied by hand, e.g. on
--- a test leg). Constants (Cond_*, Col_*, WindowFlags_* ...) are functions in the classic API; the fallback calls
+-- a test machine). Constants (Cond_*, Col_*, WindowFlags_* ...) are functions in the classic API; the fallback calls
 -- them once and caches the number, so `ImGui.Cond_FirstUseEver` reads the same in both styles.
 --
 -- load() returns nil + a user-facing message when ReaImGui is missing or too old. Lua 5.4.

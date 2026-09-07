@@ -478,7 +478,7 @@ function ST.run(T)
   end
   T.fact('agent_commands', S.n_cmds)
 
-  -- 15. the support links of the About tab (BRIEF 3.12): three https links and the opener (SWS or the clipboard)
+  -- 15. the support links of the About tab: three https links and the opener (SWS or the clipboard)
   local links = app.support_links or {}
   T.check('about: three support links', #links, 3)
   local https = true

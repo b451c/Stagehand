@@ -1,4 +1,4 @@
--- modules/stems/engine.lua - the sequential renderer (BRIEF 3.10): pre-flight, then for every enabled stem apply
+-- modules/stems/engine.lua - the sequential renderer: pre-flight, then for every enabled stem apply
 -- its solo / mute state and variant through the journal (owner 'stems'), write the render settings, defuse the
 -- overwrite case by policy, render with action 42230 (synchronous: the script resumes when the file is written),
 -- measure the file, put the state back, settle, next. The batch runs as a coroutine resumed once per frame from

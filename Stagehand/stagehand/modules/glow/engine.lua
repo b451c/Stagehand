@@ -1,7 +1,7 @@
--- modules/glow/engine.lua - the glow overlay engine (BRIEF 3.3, docs/research/mechanisms.md section 5).
+-- modules/glow/engine.lua - the glow overlay engine.
 --
 -- Every frame while something sounds: for each track shown in the TCP whose row is inside the arrange, read
--- the post-fader meter (always the real call; the fake meter replaces the VALUE on headless legs), run the
+-- the post-fader meter (always the real call; the fake meter replaces the VALUE on headless test machines), run the
 -- track's glow envelope (lib/meter) and paint the items under the play head: a fill that follows the track's
 -- own dynamics (meter mode) or the item bounds (item mode), a level bar from the take peaks (bar style), an
 -- outline, sparks at the play head's x on onsets, a colour that warms with the level. The most recently ended
@@ -190,7 +190,7 @@ function E.rescan()
   E.markers_at = -1
 end
 
--- a project edit rescans the items once the edit settled (lib/edits; docs/research/failures.md B2)
+-- a project edit rescans the items once the edit settled (lib/edits; failure note B2)
 function E.check_refresh()
   if edits.due(E) then
     E.rescan()
@@ -530,7 +530,7 @@ function E.tick()
     end
     -- idle: nothing to draw, so nothing stays composited on the arrange. REAPER paints every arrange refresh
     -- through a composited bitmap (a region drag, a zoom), which is where macOS showed a coarse, "pixelated" arrange
-    -- with the glow merely enabled (docs/research/failures.md B2); the bitmap comes back with the next play
+    -- with the glow merely enabled (failure note B2); the bitmap comes back with the next play
     if O.bmp then E.release() end
     return
   end
@@ -564,7 +564,7 @@ function E.tick()
       local rh = reaper.GetMediaTrackInfo_Value(e.tr, 'I_TCPH')
       if rh > 2 and y + rh > 0 and y < H then
         local muted = reaper.GetMediaTrackInfo_Value(e.tr, 'B_MUTE') == 1
-        local real = meter.track_db(e.tr)   -- always the real read (a missing API is caught on the leg)
+        local real = meter.track_db(e.tr)   -- always the real read (a missing API is caught on the test machine)
         local lvl = E.fake and meter.fake_db(e.fake_items or e.items, pos, e.seed) or real
         if muted or not playing then lvl = SILENCE end
         local g = 0

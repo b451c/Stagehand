@@ -191,7 +191,7 @@ local function draw_sliders()
       local changed, nv = ImGui.SliderDouble(ctx, '##sl' .. i, v, sl.min, sl.max, '%.2f')
       if changed then
         -- live preview: the merge (and the engine through its listener) follows every frame, the file waits
-        -- for the release - a write per drag frame stalled the window on macOS (docs/research/failures.md B1)
+        -- for the release - a write per drag frame stalled the window on macOS (failure note B1)
         app.note('glow.' .. sl.key)
         config.preview('glow.' .. sl.key, nv, scope())
       end

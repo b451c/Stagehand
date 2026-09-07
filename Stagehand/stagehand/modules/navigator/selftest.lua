@@ -1,6 +1,6 @@
 -- modules/navigator/selftest.lua - the scripted scenario the test harness runs against the demo project
--- (tests/fixtures) and, in the "realism" variant, against any project with counts only (no names logged).
--- Expected numbers for the demo come from tests/fixtures/README.md (an oracle independent of this code);
+-- (the generated demo project) and, in the "realism" variant, against any project with counts only (no names logged).
+-- Expected numbers for the demo come from the demo project's census (an oracle independent of this code);
 -- everything else is computed by an independent walk of the project before the action under test runs.
 -- Sabotage "leave_solo" (negative control) leaves one solo un-restored so the restore diff must go red.
 -- Lua 5.4; no globals.

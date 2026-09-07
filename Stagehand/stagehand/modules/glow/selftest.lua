@@ -2,7 +2,7 @@
 -- its media online. Oracles independent of the engine: REAPER's
 -- own list of composited bitmaps (JS_Composite_ListBitmaps), the take peaks read directly, item positions from
 -- the API, lib/layout.dump() before and after (the glow must not touch the project). The fake meter drives the
--- pipeline on a leg without audio (Dummy Audio keeps the meters silent); one section switches it off to prove
+-- pipeline on a test machine without audio (Dummy Audio keeps the meters silent); one section switches it off to prove
 -- the sparks come from the real take peaks of the generated media. Sabotage "leave_bitmap" (negative control)
 -- skips the unlink at disable so the bitmap oracle must go red. Lua 5.4; no globals.
 
@@ -74,7 +74,7 @@ end
 
 local look = nil
 
--- the B2 visual check (docs/research/failures.md B2, macOS leg): the overlay enabled and idle after a short play,
+-- the B2 visual check (failure note B2, macOS test machine): the overlay enabled and idle after a short play,
 -- then a companion drags the last region's end in the ruler with the real mouse while this samples REAPER's list
 -- of composited bitmaps (must stay 0: the arrange paints on its own path), the project state bumps and the frame
 -- cost; the companion captures the arrange during the drag (the pictures are the visual evidence). drag.txt:
@@ -84,7 +84,7 @@ function ST.b2drag(T)
   local edits = require('lib.edits')
   T.fact('js_composite', tostring(js.caps.composite))
   if not O.available() then
-    T.ok('glow needs js_ReaScriptAPI (composite)', false, 'not available on this leg')
+    T.ok('glow needs js_ReaScriptAPI (composite)', false, 'not available on this machine')
     return
   end
   T.wait(2)
@@ -205,7 +205,7 @@ function ST.run(T)
   T.fact('js_composite', tostring(js.caps.composite))
   T.fact('js_version', tostring(js.caps.js_version))
   if not O.available() then
-    T.ok('glow needs js_ReaScriptAPI (composite)', false, 'not available on this leg')
+    T.ok('glow needs js_ReaScriptAPI (composite)', false, 'not available on this machine')
     return
   end
   T.wait(2)
@@ -249,7 +249,7 @@ function ST.run(T)
   local lm, ls, lpk, ra, rb = meter.master()
   T.fact('real_meter_while_playing', string.format('track=%.1f master_m=%.1f master_s=%.1f peak=%.1f raw1024=%s raw1025=%s', real, lm, ls, lpk, tostring(ra), tostring(rb)))
 
-  -- 1b. region edits while playing (docs/research/failures.md B2): a region edge dragged for 30 frames bumps the
+  -- 1b. region edits while playing (failure note B2): a region edge dragged for 30 frames bumps the
   -- project state every frame; the item rescan waits for the edit to settle and the bitmap stays
   local rid, r_t0, r_t1, r_name, r_col = last_region()
   if rid then
@@ -258,7 +258,7 @@ function ST.run(T)
     local sc0 = reaper.GetProjectStateChangeCount(0)
     local ms_sum, ms_max = 0, 0
     for f = 1, 30 do
-      reaper.Undo_BeginBlock2(0)   -- the only scripted edit that bumps the project state (tests/fixtures/probe_edits.lua)
+      reaper.Undo_BeginBlock2(0)   -- the only scripted edit that bumps the project state (an edit probe)
       reaper.SetProjectMarker3(0, rid, true, r_t0, r_t1 + 0.01 * f, r_name, r_col)
       reaper.Undo_EndBlock2(0, 'Stagehand self-test: region edge', -1)
       T.wait(1)
@@ -299,7 +299,7 @@ function ST.run(T)
   T.fact('hit_marker', tostring(hit_t))
   if it then
     -- GetMediaItemTake_Peaks returns nil when called from a coroutine (the scenario runs in one; verified on
-    -- both legs, docs/research/failures.md G1), so every take-peak read of the scenario goes through a plain
+    -- both test machines, failure note G1, so every take-peak read of the scenario goes through a plain
     -- defer callback in the main Lua state - the engine's own reads happen in the app's tick anyway
     local fresh = reaper.new_array(16)
     fresh.clear()
@@ -402,7 +402,7 @@ function ST.run(T)
   T.wait(3)
   T.check('oversample dropped to 1 by the guard', O.S, 1)
   -- recovery needs the average under half the budget for recover_frames frames: a generous budget makes it
-  -- deterministic on both legs (the real draw time sits at 0.7-1.3 ms, right at half of the 2 ms default)
+  -- deterministic on both test machines (the real draw time sits at 0.7-1.3 ms, right at half of the 2 ms default)
   set('perf.budget_ms', 10.0)   -- the largest value the schema allows
   E.reconfigure()
   T.wait_until(function() return E.perf.level == 0 end, 150, 'guard recovers with the budget back')
@@ -459,7 +459,7 @@ function ST.run(T)
   end
   E.reconfigure()
 
-  -- 8. a slider drag (docs/research/failures.md B1): the tab previews every frame and writes the file once at the
+  -- 8. a slider drag (failure note B1): the tab previews every frame and writes the file once at the
   -- release, the engine recompiles once per frame through its listener; the old path (a write and a recompile
   -- per frame) is measured next to it for the record
   -- the scripted drag has no active ImGui item, so the tab's own release commit would run every frame: the tab

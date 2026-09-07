@@ -1,5 +1,4 @@
--- modules/recorder/layout.lua - the screen layout at the start of a recording (BRIEF 3.2 "layout at start",
--- docs/research/mechanisms.md section 3): pick the monitor, size the main window, send a named window to a
+-- modules/recorder/layout.lua - the screen layout at the start of a recording (--): pick the monitor, size the main window, send a named window to a
 -- docker, show and place the video window. Every change is journaled (owner 'recorder': window_rect, dock_id,
 -- toggle) and put back by restore(). A layout diary (ctl.note -> layout.txt and the log) records what was
 -- wanted and what REAPER did, the only way to debug a remote layout. Needs js_ReaScriptAPI for the window

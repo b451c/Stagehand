@@ -1,4 +1,4 @@
--- lib/arrange.lua - arrange-window geometry and scrolling for the layout push (docs/research/mechanisms.md 2.3-2.7).
+-- lib/arrange.lua - arrange-window geometry and scrolling for the layout push (-2.7).
 --
 -- height() -> H, exact: the arrange client height (js_ReaScriptAPI, minus the master row when it sits in the
 -- TCP) or the configured fallback. scroll_top / scroll_to_track use JS_Window_SetScrollPos when available and

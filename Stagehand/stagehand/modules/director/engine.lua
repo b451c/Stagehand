@@ -1,4 +1,4 @@
--- modules/director/engine.lua - the follow-play engine (BRIEF 3.2, docs/research/mechanisms.md section 2).
+-- modules/director/engine.lua - the follow-play engine.
 --
 -- A run owns the track layout: for the shot under the play position (LEAD seconds early) it shows the shot's
 -- lanes (plus pinned rows and, by setting, their folder parents), locks their heights so they fill the arrange
@@ -89,7 +89,7 @@ function E.rescan()
 end
 
 -- a project edit rescans the tracks once the edit settled (lib/edits: a drag bumps the count every frame); it never
--- re-applies the shot - the layout follows the shot under the cursor only (docs/research/failures.md B2)
+-- re-applies the shot - the layout follows the shot under the cursor only (failure note B2)
 function E.check_refresh()
   if edits.due(E) then
     E.rescan()
@@ -303,7 +303,7 @@ function E.apply(k, why)
   return true
 end
 
--- verify pass: real heights exist only after REAPER laid the list out (docs/research/failures.md H3)
+-- verify pass: real heights exist only after REAPER laid the list out (failure note H3)
 local function verify_step()
   local v = E.verify
   if not v then return end
@@ -482,7 +482,7 @@ function E.reapply()
 end
 
 -- a view change the Director did not make (REAPER's own scroll on stop, the user's zoom, another script): traced
--- so a "the arrange zoomed" report can be read against what the run did (docs/research/failures.md B2)
+-- so a "the arrange zoomed" report can be read against what the run did (failure note B2)
 local function watch_view()
   local a, b = view.get()
   local vs = E.view_set

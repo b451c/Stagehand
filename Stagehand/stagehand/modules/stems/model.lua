@@ -1,5 +1,5 @@
 -- modules/stems/model.lua - the stem set of a project: stems, their cells, bulk builders, persistence, presets and
--- the track extension state that lets a track template carry its stem membership (BRIEF 3.10).
+-- the track extension state that lets a track template carry its stem membership.
 --
 -- stem = { id, name, enabled, cells = { [track GUID] = 'S' | 'I' | 'M' }, names = { [GUID] = track name },
 --          variant = nil | 'master' | 'nofx' | 'dry', source = { kind, name }, range = nil | { name, t0, t1 } }

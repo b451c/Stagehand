@@ -1,4 +1,4 @@
--- modules/stems/render.lua - the render settings Stagehand owns (BRIEF 3.10) and how they reach the project.
+-- modules/stems/render.lua - the render settings Stagehand owns and how they reach the project.
 --
 -- Settings come from the config (stems.render.*): format, sample rate, channels, bounds, tail, normalisation,
 -- the file pattern and a folder relative to the project, the overwrite policy. write(stem, k) journals every
@@ -6,7 +6,7 @@
 -- one stem through GetSetProjectInfo; targets() asks REAPER for the file names it would write (RENDER_TARGETS,
 -- read-only) so the pre-flight knows the exact paths, and the stats() helper reads REAPER's render statistics
 -- only when the preference that stores them is on (reading them while it is off raises a Yes/No dialog:
--- docs/research/failures.md T1). Facts verified on both legs on 2026-09-07 (tests/fixtures/probe_render.lua):
+-- (failure note T1). Facts verified on both test machines on 2026-09-07 (a render probe):
 -- 42230 renders synchronously from a script, a relative RENDER_FILE resolves against the project folder, the
 -- "evaw" default depends on the machine's preferences (so the WAV bytes are always explicit), RENDER_ADDTOPROJ &2
 -- (skip silent) and an empty range raise modal dialogs and are never used. Lua 5.4; no globals.
@@ -20,7 +20,7 @@ local R = {}
 
 local sep = package.config:sub(1, 1)
 
-R.STATS_BIT = 1 << 21   -- renderclosewhendone: "save render statistics" (found on the leg)
+R.STATS_BIT = 1 << 21   -- renderclosewhendone: "save render statistics" (found on the test machine)
 
 -- helpers --------------------------------------------------------------------------------------------------------------
 

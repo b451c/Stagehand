@@ -1,5 +1,5 @@
 -- modules/glow/overlay.lua - the LICE bitmap composited over the arrange (js_ReaScriptAPI) and the drawing
--- primitives the glow engine paints with (docs/research/mechanisms.md 5.1, 5.2, 5.6).
+-- primitives the glow engine paints with (, 5.2, 5.6).
 --
 -- Lifecycle: ensure(S) creates the bitmap at the arrange client size times the oversampling S (2 = crisp on
 -- Retina) and composites it; it recreates the bitmap when the client size, S or the window changed. Every

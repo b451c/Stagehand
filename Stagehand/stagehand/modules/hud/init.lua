@@ -1,4 +1,4 @@
--- modules/hud/init.lua - the HUD module (BRIEF section 3.4): a dockable caption bar for the recording (shot
+-- modules/hud/init.lua - the HUD module: a dockable caption bar for the recording (shot
 -- name, caption, progress, loudness, time, sync flashes) plus the HUD tab that controls it. The bar is a second
 -- ReaImGui window drawn through the app's draw_extra hook every frame; it learns about shots from the
 -- Director's events (shot_changed, director_active, director_shots) and never requires that module.
@@ -138,7 +138,7 @@ function H.show(on)
   if on == H.visible then return end
   H.visible = on
   if on then
-    -- the bar may land in the docker that holds the mixer (Windows leg: the mixer docked at the bottom); when the
+    -- the bar may land in the docker that holds the mixer (Windows test machine: the mixer docked at the bottom); when the
     -- bar closes again REAPER leaves the mixer's toggle off, so the mixer state is remembered and re-asserted
     H.mixer_at_show = view.toggle_state(MIXER_TOGGLE, 'mixer')
     H.mixer_check = nil
@@ -241,7 +241,7 @@ function M.tick(app_)
   if H.msg_frames > 0 then H.msg_frames = H.msg_frames - 1 end
   local mode = (H.cfg.loudness and H.cfg.loudness.mode) or 'live'
   if H.visible or F.active() then
-    -- the master loudness channels cost about 0.05 ms per read on the legs: every frame while playing, every
+    -- the master loudness channels cost about 0.05 ms per read on the test machines: every frame while playing, every
     -- sixth frame while the transport stands still (the values do not move then)
     local playing = view.playing()
     if playing or app_.frame % 6 == 0 then

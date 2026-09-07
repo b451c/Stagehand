@@ -1,4 +1,4 @@
--- modules/hud/flash.lua - the sync flash sequencer for screen recordings (BRIEF 3.4, mechanisms.md 4 and 6.1).
+-- modules/hud/flash.lua - the sync flash sequencer for screen recordings.
 --
 -- start(): the bar paints white for `frames` defer frames, then `gap` dark frames, then the transport starts;
 -- while playing the sequencer waits for the play position to pass end_at, paints white again for `frames`

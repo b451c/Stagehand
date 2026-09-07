@@ -1,4 +1,4 @@
--- modules/overview/init.lua - the Overview module (BRIEF section 3.6): one tall picture of the whole session.
+-- modules/overview/init.lua - the Overview module: one tall picture of the whole session.
 -- The layout engine (layout.lua) lays the session out through the journal (owner 'overview'), serves the
 -- capture geometry and the page plan, and answers the ctl verb "overview ..." for the companion drivers in
 -- tools/ (overview_capture.py); the tab (ui.lua) offers apply / restore, quick settings, the companion command

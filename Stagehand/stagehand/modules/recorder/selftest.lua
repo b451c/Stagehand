@@ -192,7 +192,7 @@ function ST.run(T)
       T.ok('video window placed top right (+-40)', v.now and math.abs(v.now[1] - v.want[1]) <= 40 and math.abs(v.now[2] - v.want[2]) <= 40, string.format('now %s wanted %s', v.now and table.concat(v.now, ',') or '?', table.concat(v.want, ',')))
       T.fact('video_rect', string.format('was=%s want=%s now=%s', v.was and table.concat(v.was, ',') or '?', table.concat(v.want, ','), v.now and table.concat(v.now, ',') or '?'))
     else
-      T.fact('video_window', 'not found by title on this leg')
+      T.fact('video_window', 'not found by title on this machine')
     end
     T.ok('window rect journaled', journal.has('window_rect', 'main'))
     if T.sabotage == 'leave_window' then
@@ -207,7 +207,7 @@ function ST.run(T)
     T.fact('diary_lines', #RL.diary)
     for _, key in ipairs({ 'monitor', 'main_window', 'main_w', 'main_h', 'video.show', 'video.place', 'video.w', 'video.h' }) do config.reset('recorder.layout.' .. key, 'project') end
   else
-    T.ok('layout at start needs js_ReaScriptAPI', false, 'missing on this leg')
+    T.ok('layout at start needs js_ReaScriptAPI', false, 'missing on this machine')
   end
 
   -- 6. checklist with a fix through the journal ------------------------------------------------------------------------------------

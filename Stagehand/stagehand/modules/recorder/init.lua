@@ -1,4 +1,4 @@
--- modules/recorder/init.lua - the Recorder module (BRIEF section 3.5): the control protocol for the companion
+-- modules/recorder/init.lua - the Recorder module: the control protocol for the companion
 -- drivers in tools/ (record_showcase.py, overview_capture.py), the arm sequence (cursor, Director run, HUD bar,
 -- layout at start, the hud file), the sync tokens mirrored from the HUD's flash sequencer into the state file,
 -- the recording checklist, the screen layout at start and the shot-list export. Everything goes through

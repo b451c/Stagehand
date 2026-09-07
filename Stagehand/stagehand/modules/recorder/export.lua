@@ -1,4 +1,4 @@
--- modules/recorder/export.lua - shot-list export and import (BRIEF 3.5): JSON for editors and tools, CSV for
+-- modules/recorder/export.lua - shot-list export and import: JSON for editors and tools, CSV for
 -- spreadsheets. The shots come from the Director module when it is loaded (soft reference through the app
 -- registry, never a require). JSON: { stagehand_shots = { version, project, exported, time_format }, shots =
 -- [ shot ... ] } with the Director's own shot model; CSV: one row per shot with seconds and timecode columns.

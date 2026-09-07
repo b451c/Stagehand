@@ -152,7 +152,7 @@ restorers.loop_range = function(e)
   return 'restored'
 end
 
--- order matters (H1 in docs/research/failures.md): show, unlock, override, original lock, compact, pin
+-- order matters (H1 in the failure notes): show, unlock, override, original lock, compact, pin
 restorers.layout = function(e)
   local tr = track_of(e)
   if not tr then return 'gone' end

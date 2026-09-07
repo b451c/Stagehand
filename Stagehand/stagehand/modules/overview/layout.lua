@@ -1,4 +1,4 @@
--- modules/overview/layout.lua - the overview layout engine (BRIEF 3.6, docs/research/mechanisms.md section 7).
+-- modules/overview/layout.lua - the overview layout engine.
 --
 -- apply(): mixer, master row and video window hidden; every track shown at one locked height (tracks matching
 -- the hide rule left out, folders uncollapsed, pins off); every USED envelope lane open at one height (used =

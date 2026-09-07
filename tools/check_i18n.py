@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """check_i18n.py <package dir> - every t('key') used in the Lua code must exist in stagehand/lang/en.lua.
 
-Reports missing keys (exit 1) and unused keys (informational). Part of the static gate before a leg run.
+Reports missing keys (exit 1) and unused keys (informational). Part of the static gate before a test run.
 """
 import os
 import re

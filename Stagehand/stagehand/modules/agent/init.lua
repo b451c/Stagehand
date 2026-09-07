@@ -1,4 +1,4 @@
--- modules/agent/init.lua - agent access (BRIEF 3.11): the control protocol (lib/ctl) grows read verbs with JSON
+-- modules/agent/init.lua - agent access: the control protocol (lib/ctl) grows read verbs with JSON
 -- replies (state, census, shotlist, stemset, results, config get / list) and a few action verbs an agent needs
 -- (nav jump / solo / mute / clear, director start / stop / goto / next / prev / auto, command <name>, config
 -- set / reset), all gated by three switches the user owns (agent.enable, agent.allow_changes, agent.allow_render).

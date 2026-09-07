@@ -1,4 +1,4 @@
--- lib/ctl.lua - the control protocol for external drivers (BRIEF 3.5, docs/research/mechanisms.md 6.1 and 7).
+-- lib/ctl.lua - the control protocol for external drivers.
 --
 -- Files in <ctl dir> (recorder.ctl.dir or <project folder>/Render/stagehand_ctl):
 --   cmd        one command line written by the driver; read and deleted by poll() (every recorder.ctl.poll_frames)

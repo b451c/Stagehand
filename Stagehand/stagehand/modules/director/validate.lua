@@ -1,4 +1,4 @@
--- modules/director/validate.lua - the in-app shot-list checker (the source job had it as an offline script).
+-- modules/director/validate.lua - the in-app shot-list checker (the original tool had it as an offline script).
 --
 -- run(shots, ctx) -> issues: list of { level = 'error' | 'warn' | 'info', k = shot index or nil, text }
 -- ctx = { tracks (lib/tracks.scan with .fam), H (arrange height px), cfg = director config table,

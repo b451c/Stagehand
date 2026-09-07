@@ -1,5 +1,5 @@
 -- modules/director/selftest.lua - the scripted Director scenario the test harness runs against the demo project
--- (tests/fixtures/README.md is the oracle for track names, scenes and envelopes). Every expectation about the
+-- (the demo project's census is the oracle for track names, scenes and envelopes). Every expectation about the
 -- project is computed by an independent walk of the REAPER API (never through the engine); geometry is read
 -- back from REAPER (I_TCPY / I_WNDH / I_TCPH), envelope visibility from the state chunk's VIS line.
 -- Sabotage "leave_height" (negative control) leaves one height override behind after Stop so the restore diff
@@ -268,7 +268,7 @@ function ST.run(T)
   for _, i in ipairs(S.issues) do
     if i.k == 3 and i.level == 'warn' and i.text:lower():find('do not fit', 1, true) then flagged3 = true end
   end
-  -- a small arrange (the Windows leg runs REAPER with a 279 px arrange) cannot hold the lanes at the minimum
+  -- a small arrange (the Windows test machine runs REAPER with a 279 px arrange) cannot hold the lanes at the minimum
   -- height: then the engine stops at the minimum and the validator must have warned about it
   T.ok('shot 3 fits after the verify pass, or the validator warned that it cannot', bottom3 <= L.H + 2 or (L.lane_h <= lane_min and flagged3),
     string.format('bottom=%d H=%d lane_h=%d tries=%d flagged=%s', bottom3, L.H, L.lane_h, L.verify_tries, tostring(flagged3)))
@@ -299,9 +299,9 @@ function ST.run(T)
   reaper.OnStopButton()
   T.wait(3)
 
-  -- 5b. project edits during a run (docs/research/failures.md B2): a region edge moved on 45 consecutive frames
+  -- 5b. project edits during a run (failure note B2): a region edge moved on 45 consecutive frames
   -- must not re-apply the shot, move the view or change the layout; the track rescan waits for the edit to settle.
-  -- Each move sits in an undo block: the probe (tests/fixtures/probe_edits.lua) showed that only an undo block bumps
+  -- Each move sits in an undo block: the edit probe showed that only an undo block bumps
   -- GetProjectStateChangeCount from a script, and a mouse gesture in the ruler bumps it once per gesture
   local rid, r_t0, r_t1, r_name, r_col
   for i = 0, reaper.CountProjectMarkers(0) - 1 do
@@ -420,14 +420,14 @@ function ST.run(T)
   T.check('view restored end', va1, vb1, 0.01)
   if scroll_before then T.check('scroll restored', arrange.scroll_pos(), scroll_before) end
   if cont_before >= 0 then T.check('continuous scroll restored', layout.cont_scroll_state(), cont_before) end
-  -- the ruler keeps its own minimum height (docs/research/failures.md H5): after the blind toggles come back the
+  -- the ruler keeps its own minimum height (failure note H5): after the blind toggles come back the
   -- arrange may keep one lane's worth of the band, so give REAPER time and accept a one-lane difference
   local fb = config.get('director.heights.arrange_fallback_px')
   T.wait_until(function() return arrange.height(fb) == h_ruler_before end, 60)
   local h_ruler_restored = arrange.height(fb)
   T.fact('ruler_arrange_after_stop', h_ruler_restored)
-  -- what hiding the lanes gained stays after they come back (10 px on the legs, 15 px on macOS: the ruler keeps its
-  -- minimum height, failures.md H5), so the tolerance is the measured gain, never a constant
+  -- what hiding the lanes gained stays after they come back (10 px on the test machines, 15 px on macOS: the ruler keeps its
+  -- minimum height, failure note H5), so the tolerance is the measured gain, never a constant
   local gain = math.max(0, h_ruler_after - h_ruler_before)
   local tol = math.max(12, gain + 1)
   T.fact('ruler_gain_px', gain)

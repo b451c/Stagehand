@@ -25,10 +25,10 @@ local M = {}
 local NAME = 'Stagehand'
 local VERSION = '0.1.0-dev'
 local HEARTBEAT_FRAMES = 15
-local SLOW_FRAME_MS = 50   -- a frame over this is logged with the last user action (docs/research/failures.md B1)
+local SLOW_FRAME_MS = 50   -- a frame over this is logged with the last user action (failure note B1)
 local START_COMMANDS = { hud_show = true, settings_show = true, stems_show = true }   -- commands a launcher may carry into a fresh start (a toggle would flip a default)
 local DEFAULT_W, DEFAULT_H = 460, 700
--- the support links (BRIEF 3.12): the About tab's buttons, the README, the ReaPack @about and the guide name the same three
+-- the support links: the About tab's buttons, the README, the ReaPack @about and the guide name the same three
 local SUPPORT_LINKS = {
   { id = 'kofi', label = 'Ko-fi', url = 'https://ko-fi.com/quickmd' },
   { id = 'bmc', label = 'Buy Me a Coffee', url = 'https://buymeacoffee.com/bsroczynskh' },
@@ -94,7 +94,7 @@ end
 
 -- place the floating main window (ImGui screen coordinates, logical px) on the next frame: scripted scenarios and
 -- layouts go through ImGui, never through the OS window (a window moved behind ImGui's back keeps its old position
--- for popups and input, verified on the macOS leg)
+-- for popups and input, verified on the macOS test machine)
 function app.place_window(x, y, w, h)
   app.window_request = { x = x, y = y, w = w, h = h }
 end
@@ -396,7 +396,7 @@ local function frame()
   end
   if visible then
     -- the body runs under its own pcall so End() is always paired with Begin(): a frame error between the two
-    -- leaves the ReaImGui context invalid ("Missing End()" dialog, verified on the legs)
+    -- leaves the ReaImGui context invalid ("Missing End()" dialog, verified on the test machines)
     local ok, err = pcall(draw_body)
     ImGui.End(ctx)
     if not ok then

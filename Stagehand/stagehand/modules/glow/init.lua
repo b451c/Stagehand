@@ -1,4 +1,4 @@
--- modules/glow/init.lua - the Glow module (BRIEF section 3.3): a per-frame overlay composited over the arrange
+-- modules/glow/init.lua - the Glow module: a per-frame overlay composited over the arrange
 -- that glows with the sound (js_ReaScriptAPI). Module contract (docs/architecture.md section 3): init, tick,
 -- draw, selftest, restore, shutdown. The overlay never touches the project; restore() and shutdown() release
 -- the bitmap. Lua 5.4; no globals.

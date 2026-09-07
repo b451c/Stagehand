@@ -1,4 +1,4 @@
--- modules/stems/init.lua - the Stems module (BRIEF 3.10): stem definitions in bulk from what the Navigator knows
+-- modules/stems/init.lua - the Stems module: stem definitions in bulk from what the Navigator knows
 -- (families, top folders, the selection, scenes, the project's solo / mute state), a matrix editor for the
 -- exceptions, stem-set presets, render settings owned by Stagehand, a sequential renderer with a pre-flight
 -- checklist and a results page. Module contract (docs/architecture.md section 3): init, tick, draw, selftest,

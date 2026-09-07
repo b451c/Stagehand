@@ -26,7 +26,7 @@ local MIXER = 40078
 local VIDEO = 50125
 
 -- the render settings a Stems run writes (journaled as render_num / render_str); RENDER_TARGETS and RENDER_STATS
--- are read-only and never part of a dump (the stats read can raise a dialog, see docs/research/failures.md T1)
+-- are read-only and never part of a dump (the stats read can raise a dialog, see failure note T1
 M.RENDER_NUM = { 'RENDER_SETTINGS', 'RENDER_BOUNDSFLAG', 'RENDER_CHANNELS', 'RENDER_SRATE', 'RENDER_STARTPOS', 'RENDER_ENDPOS',
   'RENDER_TAILFLAG', 'RENDER_TAILMS', 'RENDER_ADDTOPROJ', 'RENDER_DITHER', 'RENDER_NORMALIZE', 'RENDER_NORMALIZE_TARGET' }
 M.RENDER_STR = { 'RENDER_FILE', 'RENDER_PATTERN', 'RENDER_FORMAT', 'RENDER_FORMAT2' }

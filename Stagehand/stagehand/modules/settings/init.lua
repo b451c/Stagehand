@@ -1,4 +1,4 @@
--- modules/settings/init.lua - the Settings module (BRIEF section 3.7): every knob of every module in one tab
+-- modules/settings/init.lua - the Settings module: every knob of every module in one tab
 -- drawn from schema.lua, with search, tooltips, live preview, reset per key / group / scope, the two scopes
 -- (this project / global), presets (shipped and the user's own, import / export as JSON) and the report of
 -- invalid values found in the layers. Module contract (docs/architecture.md section 3): init, draw,

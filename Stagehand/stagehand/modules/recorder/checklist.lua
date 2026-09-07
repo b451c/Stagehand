@@ -1,4 +1,4 @@
--- modules/recorder/checklist.lua - the recording checklist (BRIEF 3.5): what should be true before a
+-- modules/recorder/checklist.lua - the recording checklist: what should be true before a
 -- recording starts, checked live where REAPER can tell (window size, mixer, video window, HUD bar, Director shots
 -- and validation, glow, transport, cursor, loudness curve, the ctl folder) and stated as a reminder where it
 -- cannot (screen sleep, notifications, the recorder permission). A row with a fix applies it through the

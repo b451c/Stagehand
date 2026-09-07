@@ -6,7 +6,7 @@
 -- the recent peak and sinks slowly (`hold`, floored so quiet beds still pulse), and a fast-falling detector
 -- (`det`); an onset = the level rose at least onset_db above the decayed detector, at least min_gap_s after the
 -- last one. Brightness g = ((fast - (hold - window)) / window) ^ gamma, clamped to 0..1, 0 below the floor.
--- fake_db(items, pos, seed): synthetic dynamics from item bounds for headless legs (media offline, meters
+-- fake_db(items, pos, seed): synthetic dynamics from item bounds for headless test machines (media offline, meters
 -- silent); the caller still reads the real meter every frame (docs/architecture.md invariant 5).
 -- master(): REAPER's LUFS-M / LUFS-S style values (channels 1024 / 1025; negative dB, a positive value would
 -- be linear) and the sample peak of the master. Lua 5.4; no globals; no math.log10 (REAPER's Lua has none).

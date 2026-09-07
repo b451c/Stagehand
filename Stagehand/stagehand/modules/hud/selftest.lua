@@ -1,7 +1,7 @@
 -- modules/hud/selftest.lua - the scripted HUD scenario the test harness runs against the demo project.
 -- Pure parts first (layout tiers, caption fitting with a measure stub and a multi-byte caption, the gated
 -- loudness integration, the curve parser) so a regression is caught without a window; then the bar window
--- (docking into a bottom docker when the leg's config has one, else floating), the Director's events driving
+-- (docking into a bottom docker when the test machine's config has one, else floating), the Director's events driving
 -- the shot and caption, the live loudness read while Dummy Audio plays, and the flash sequence with its tokens
 -- in order and the transport really starting (sabotage "flash_no_play" is the negative control: the sequencer
 -- never presses play, so the transport check must go red). Lua 5.4; no globals.

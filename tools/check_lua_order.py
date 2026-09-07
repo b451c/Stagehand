@@ -10,7 +10,7 @@ declared further DOWN the file is not in scope yet, so `later()` compiles as a c
     a()   --> attempt to call a nil value (global 'b')
 
 The crash only shows on the code path that runs, so a static check is the cheap way to catch it
-before a script is shipped to a leg or to users (two start-up crashes in the source job came from
+before a script is shipped to a test machine or to users (two start-up crashes in the original tools came from
 exactly this). This checker is deliberately textual: it does not model block scope.
 
 Usage:  check_lua_order.py FILE.lua [FILE.lua ...]
