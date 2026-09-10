@@ -6,7 +6,7 @@ Writes the ReaPack repository index for Stagehand from the header of Stagehand/S
 sources are every file @provides names (globs expanded against the package folder), with the [main] launchers marked
 as actions. Standard library only (the Ruby reapack-index is not needed); the GitHub Actions workflow runs it on every
 push to main with --commit $GITHUB_SHA so the source URLs pin the commit. --url-base points the sources elsewhere
-(a LAN HTTP server for the leg install test: <base>/Stagehand/<file>). --check validates the header and the file list
+(a LAN HTTP server for an install test: <base>/Stagehand/<file>). --check validates the header and the file list
 without writing. Exit: 0 ok, 1 a provided file is missing or the header is incomplete.
 """
 import argparse
