@@ -346,6 +346,43 @@ function ST.run(T)
   T.ok('director stop: DIRECTOR_STOP token in the state', find_token('DIRECTOR_STOP', 0) ~= nil)
   T.wait(20)   -- the view animation and the transport settle
 
+  -- 8b. the shot list through the protocol ---------------------------------------------------------------------------------------------------------
+  local n0 = #MD.shots
+  dr = ask('director shots add {"name":"Agent shot","t0":12,"t1":15,"caption":"Added by the agent"}', 'DIRECTOR')
+  T.check('shots add: count', dr and dr.shots, n0 + 1)
+  local kk
+  for k, sh in ipairs(MD.shots) do if sh.name == 'Agent shot' then kk = k end end
+  T.ok('shots add: the shot is in the model with its caption', kk ~= nil and MD.shots[kk].caption == 'Added by the agent')
+  T.check('shots add: default lane', kk and MD.shots[kk].lanes[1] and MD.shots[kk].lanes[1].kind, 'items')
+  if kk then
+    dr = ask('director shots update ' .. kk .. ' {"caption":"Updated","lanes":[{"kind":"family","name":"Music"}]}', 'DIRECTOR')
+    T.check('shots update: caption', MD.shots[kk].caption, 'Updated')
+    T.check('shots update: lane replaced', MD.shots[kk].lanes[1] and MD.shots[kk].lanes[1].kind, 'family')
+    T.check('shots update: name kept', MD.shots[kk].name, 'Agent shot')
+    T.check('shots update: range kept', MD.shots[kk].t1, 15, 1e-9)
+  end
+  _, eline = ask('director shots update 99 {"caption":"x"}', 'DIRECTOR')
+  T.ok('shots update: out of range refused', is_error(eline), tostring(eline))
+  _, eline = ask('director shots add not-json', 'DIRECTOR')
+  T.ok('shots add: bad JSON refused', is_error(eline), tostring(eline))
+  T.check('shots: bad requests changed nothing', #MD.shots, n0 + 1)
+  if kk then
+    dr = ask('director shots remove ' .. kk, 'DIRECTOR')
+    T.check('shots remove: count', dr and dr.shots, n0)
+  end
+  dr = ask('director shots set [{"name":"A","t0":0,"t1":5},{"name":"B","t0":5,"t1":9,"view":"follow","caption":"b"}]', 'DIRECTOR')
+  T.check('shots set: replaced the list', #MD.shots, 2)
+  T.check('shots set: fields kept', MD.shots[2] and MD.shots[2].view, 'follow')
+  T.check('shots set: reply lists the shot list', dr and dr.shots, 2)
+  dr = ask('director shots from_scenes', 'DIRECTOR')
+  T.check('shots from_scenes: one per scene appended', #MD.shots, 2 + #D.scenes)
+  dr = ask('director shots clear', 'DIRECTOR')
+  T.check('shots clear: empty', #MD.shots, 0)
+  sl = ask('shotlist', 'SHOTLIST')
+  T.check('shotlist after clear', sl and sl.n, 0)
+  dr = ask('director shots from_scenes', 'DIRECTOR')
+  T.check('shots from_scenes: the list for the sections below', #MD.shots, #D.scenes)
+
   -- 9. commands ------------------------------------------------------------------------------------------------------------------------------
   local hud = app.by_name['hud']
   local cmd = ask('command hud_show', 'COMMAND')
@@ -373,6 +410,10 @@ function ST.run(T)
   _, eline = ask('director start', 'DIRECTOR')
   T.ok('changes off: director refused', is_refused(eline), tostring(eline))
   T.check('changes off: no run started', E.active, false)
+  local n_shots_gate = #MD.shots
+  _, eline = ask('director shots clear', 'DIRECTOR')
+  T.ok('changes off: shot list edit refused', is_refused(eline), tostring(eline))
+  T.check('changes off: shot list untouched', #MD.shots, n_shots_gate)
   _, eline = ask('command hud_show', 'COMMAND')
   T.ok('changes off: command refused', is_refused(eline), tostring(eline))
   _, eline = ask('config set director.timing.lead_s 0.5', 'CONFIG')

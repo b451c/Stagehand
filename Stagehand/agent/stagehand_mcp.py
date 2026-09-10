@@ -266,6 +266,23 @@ TOOLS = [
         }, ['action']),
     },
     {
+        'name': 'stagehand_shots_set',
+        'description': 'Edit the Director\'s shot list, the script of a showcase: "set" replaces the whole list with `shots`, '
+                       '"add" appends `shot`, "update" merges the fields of `shot` into shot number `k`, "remove" deletes shot `k`, '
+                       '"clear" empties the list, "from_scenes" appends one shot per region (name and caption from the region). '
+                       'A shot: {name, t0, t1 (seconds), caption, caption2, lanes: [{kind: "items"} | {kind: "items", family} | '
+                       '{kind: "family", name} | {kind: "rule", rule} | {kind: "track", name}], envelopes: [{track, env}] (name '
+                       'rules), view: "page" | "follow", parents: "none" | "bus" | "all", pad_before, pad_after}. Lanes default '
+                       'to the tracks with items in the range. The list lives in the project and is saved only when the user '
+                       'saves. Ask before replacing a list the user built by hand; read stagehand_shots first.',
+        'inputSchema': _obj({
+            'action': {'type': 'string', 'enum': ['set', 'add', 'update', 'remove', 'clear', 'from_scenes']},
+            'shots': {'type': 'array', 'items': {'type': 'object'}, 'description': 'for set: the new list'},
+            'shot': {'type': 'object', 'description': 'for add: the shot; for update: the fields to change'},
+            'k': {'type': 'integer', 'description': 'for update / remove: 1-based shot number'},
+        }, ['action']),
+    },
+    {
         'name': 'stagehand_command',
         'description': 'Emit one of Stagehand\'s named commands: director_start / director_stop, glow_on / glow_off / glow_toggle, '
                        'hud_show / hud_hide / hud_toggle, hud_arm_play / hud_cancel, overview_apply / overview_restore / '
@@ -402,6 +419,28 @@ class Server:
             if action in ('start', 'stop', 'next', 'prev', 'validate'):
                 return ctl.json('director %s' % action, 'DIRECTOR')
             raise CtlError('director action must be start, stop, goto, next, prev, auto or validate')
+        if name == 'stagehand_shots_set':
+            action = args.get('action')
+            if action == 'set':
+                shots = args.get('shots')
+                if not isinstance(shots, list):
+                    raise CtlError('set needs a list of shots')
+                return ctl.json('director shots set %s' % json.dumps(shots, separators=(',', ':')), 'DIRECTOR')
+            if action == 'add':
+                if not isinstance(args.get('shot'), dict):
+                    raise CtlError('add needs a shot')
+                return ctl.json('director shots add %s' % json.dumps(args['shot'], separators=(',', ':')), 'DIRECTOR')
+            if action == 'update':
+                if not args.get('k') or not isinstance(args.get('shot'), dict):
+                    raise CtlError('update needs k and the fields to change')
+                return ctl.json('director shots update %d %s' % (int(args['k']), json.dumps(args['shot'], separators=(',', ':'))), 'DIRECTOR')
+            if action == 'remove':
+                if not args.get('k'):
+                    raise CtlError('remove needs k')
+                return ctl.json('director shots remove %d' % int(args['k']), 'DIRECTOR')
+            if action in ('clear', 'from_scenes'):
+                return ctl.json('director shots %s' % action, 'DIRECTOR')
+            raise CtlError('shots_set action must be set, add, update, remove, clear or from_scenes')
         if name == 'stagehand_command':
             cmd = (args.get('name') or '').strip()
             if not cmd:
@@ -561,6 +600,10 @@ def selftest(conn, out_path, log):
     v['render_refused'] = expect('render refused without confirm', 'refused' in (text or ''), text)
     _, text = tool('stagehand_jump', {})
     expect('jump without arguments is an error', 'needs' in (text or ''), text)
+    _, text = tool('stagehand_shots_set', {'action': 'remove', 'k': 9999})
+    expect('shots_set: out-of-range remove is refused by Stagehand', 'needs' in (text or '') or 'refused' in (text or ''), text)
+    _, text = tool('stagehand_shots_set', {'action': 'update'})
+    expect('shots_set: update without k is an error', 'needs' in (text or ''), text)
     cg, _ = tool('stagehand_config', {'action': 'get', 'key': 'director.timing.lead_s'})
     before = cg and cg.get('entry', {}).get('value')
     cset, _ = tool('stagehand_config', {'action': 'set', 'key': 'director.timing.lead_s', 'value': '0.65'})

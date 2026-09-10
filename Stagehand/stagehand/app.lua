@@ -23,7 +23,22 @@ local t = i18n.t
 local M = {}
 
 local NAME = 'Stagehand'
-local VERSION = '0.1.0-dev'
+-- the version comes from the ReaPack header of Stagehand.lua next to the code folder (one source of truth)
+local function read_version()
+  local src = debug.getinfo(1, 'S').source
+  local path = src:sub(1, 1) == '@' and src:sub(2) or src
+  local root = path:match('^(.*)[/\\]stagehand[/\\]app%.lua$')
+  if root then
+    local f = io.open(root .. '/Stagehand.lua', 'r')
+    if f then
+      local head = f:read(4000); f:close()
+      local v = head and head:match('@version%s+(%S+)')
+      if v then return v end
+    end
+  end
+  return 'unknown'
+end
+local VERSION = read_version()
 local HEARTBEAT_FRAMES = 15
 local SLOW_FRAME_MS = 50   -- a frame over this is logged with the last user action (failure note B1)
 local START_COMMANDS = { hud_show = true, settings_show = true, stems_show = true }   -- commands a launcher may carry into a fresh start (a toggle would flip a default)

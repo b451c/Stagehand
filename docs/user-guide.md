@@ -802,7 +802,8 @@ The Recorder's control protocol (the `cmd` / `state` files in `<project>/Render/
 that answer with JSON files (`reply_N.json`, named in the token line): `hello <name>`, `verbs`, `state`, `census`,
 `shotlist`, `stemset`, `results`, `config get <key> | list [prefix] | set <key> <value> [project|global] | reset
 <key> [scope]`, `nav jump scene|marker|time ... | solo <scene> | mute <scene> | clear | restore`, `director
-start | stop | goto <k> | next | prev | auto on|off | validate`, `command <name>` (the app commands: `glow_off`,
+start | stop | goto <k> | next | prev | auto on|off | validate | shots set <json> | add <json> | update <k> <json> | remove
+<k> | clear | from_scenes` (the shot list itself, so an agent can write the whole showcase from a description), `command <name>` (the app commands: `glow_off`,
 `hud_show`, `overview_apply`, ...). The package ships an MCP server (`agent/stagehand_mcp.py`, Python 3, standard
 library only, stdio) that exposes them as typed tools, and a skill (`agent/skills/stagehand/SKILL.md`) that teaches an
 agent the workflow: read first, ask before changing anything, never save, confirm a render with you in the

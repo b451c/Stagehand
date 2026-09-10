@@ -21,6 +21,7 @@ def main():
     ap.add_argument('--name', default='Claude')
     ap.add_argument('--scene', default='5')
     ap.add_argument('--shot', default='5')
+    ap.add_argument('--caption', default='Caption written by the agent')
     ap.add_argument('--pace', type=float, default=3.0)
     a = ap.parse_args()
     ctl = Ctl(a.ctl)
@@ -30,6 +31,7 @@ def main():
         print('no answer: %s' % e)
         return 3
     steps = [('hello %s' % a.name, 'HELLO'), ('census', 'CENSUS'), ('nav jump scene %s' % a.scene, 'NAV'),
+             ('director shots update %s {"caption":"%s"}' % (a.shot, a.caption), 'DIRECTOR'),
              ('director goto %s' % a.shot, 'DIRECTOR'), ('director stop', 'DIRECTOR')]
     for line, token in steps:
         t0 = time.time()

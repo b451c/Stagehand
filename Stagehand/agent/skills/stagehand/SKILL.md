@@ -42,6 +42,7 @@ journaled by Stagehand and restored like the user's own.
 | "Mute everything in the intro" | `stagehand_scene` `{action: "mute", scene: "Intro"}` | ask first |
 | "Put everything back" | `stagehand_scene` `{action: "clear"}` or `restore` | clear = scene solo / mute; restore = the whole journal |
 | "What does the shot list look like, any problems?" | `stagehand_shots` | issues carry level error / warn / info and the shot number |
+| "Make a shot per scene" / "add a shot for the fight, 40 to 52 s, caption ..." / "change shot 3's caption" | `stagehand_shots_set` `from_scenes` / `{action: "add", shot: {...}}` / `{action: "update", k: 3, shot: {caption: "..."}}` | ask before `set` or `clear` on a list the user built; then `stagehand_shots` shows the validator's verdict |
 | "Play the showcase" / "stop it" | `stagehand_director` `start` / `stop` | ask first; the arrange follows the shots until stopped |
 | "Show shot 3" | `stagehand_director` `{action: "goto", shot: 3}` | starts a run when none is active |
 | "Turn the glow off" / "show the HUD" | `stagehand_command` `glow_off` / `hud_show` | |

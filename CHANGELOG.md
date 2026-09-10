@@ -2,6 +2,15 @@
 
 All notable changes to Stagehand for REAPER. Format: Keep a Changelog; versions follow semantic versioning.
 
+## 1.0.1 - 2026-09-10
+
+- Agent access: the shot list can be written through the protocol (`director shots set | add | update | remove | clear |
+  from_scenes`) and the MCP tool `stagehand_shots_set`, so an agent can set up a whole showcase from a description.
+- The About tab, the window title line and the log show the package version read from the ReaPack header (1.0.0 showed
+  `0.1.0-dev`).
+- GitHub Pages: the repository root redirects to the user guide.
+- Demo video re-recorded (the closing narration, the About segment, the end card).
+
 ## 1.0.0 - 2026-09-07
 
 First release. One ReaPack package (Lua + ReaImGui) for REAPER 7 on Windows, macOS and Linux.

@@ -1,5 +1,5 @@
 -- @description Stagehand - session navigator, showcase director and session overview
--- @version 1.0.0
+-- @version 1.0.1
 -- @author Bartosz Sroczynski (falami.studio)
 -- @provides
 --   [main] Stagehand.lua
@@ -37,6 +37,9 @@
 --   development: Ko-fi https://ko-fi.com/quickmd - Buy Me a Coffee https://buymeacoffee.com/bsroczynskh -
 --   PayPal https://paypal.me/b451c
 -- @changelog
+--   1.0.1 - agent access: the shot list can be written through the protocol (director shots set / add / update / remove /
+--   clear / from_scenes) and the MCP tool stagehand_shots_set; the About tab and the log show the package version (1.0.0
+--   reported 0.1.0-dev); the Pages root redirects to the guide.
 --   1.0.0 - first release. Navigator: scenes, markers, tracks, items, fuzzy search, jump, audition with auto-stop,
 --   scene solo / mute with an exact restore, families, focus, groups. Director: shot list with validation, follow-play
 --   (lanes at locked heights filling the arrange, pinned rows, parents, envelope story mode, page / follow view with

@@ -26,7 +26,8 @@ Windows / macOS / Linux), configurable end to end. A falami.studio tool by Barto
 - **Configure**: every knob in one Settings tab drawn from a schema, presets, per-project overrides, invalid values
   reported and never silently repaired.
 - **Ask an agent**: an AI agent (Claude and the like) reads the session and drives Stagehand through the bundled MCP
-  server, gated by three switches you own.
+  server: it can build and edit the shot list, run the Director, change any setting and render stems, gated by three
+  switches you own.
 
 ![A Director run: the arrange follows the shot, the HUD bar at the bottom](docs/images/stagehand_director_run.gif)
 
@@ -50,10 +51,10 @@ through Actions > Show action list > New action > Load ReaScript.
   companions, the agent access.
 - [Configuration reference](docs/config-reference.md) - every setting with its range and default, generated from the schema.
 - [Companions and checkers](tools/README.md) - the recorder, overview, stems and agent tools.
-- [Demo video](https://github.com/b451c/Stagehand/releases/download/v1.0.0/Stagehand_demo_1080p.mp4) (4 min, 1080p;
-  a [720p copy](https://github.com/b451c/Stagehand/releases/download/v1.0.0/Stagehand_demo_720p.mp4) is on the
-  [release page](https://github.com/b451c/Stagehand/releases/tag/v1.0.0)). The narration and the edit were produced by
-  an AI agent from a scripted tour of the demo session.
+- [Demo video](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_1080p.mp4) (4 min, 1080p;
+  a [720p copy](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_720p.mp4) is on the
+  [release page](https://github.com/b451c/Stagehand/releases/latest)). The picture is a scripted tour of the demo session;
+  the narration is a synthetic voice reading the demo script.
 
 ![The Glow overlay lights the tracks that are sounding](docs/images/stagehand_glow.gif)
 

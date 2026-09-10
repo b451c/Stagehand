@@ -231,8 +231,56 @@ local function verb_director(args, line)
   elseif action == 'auto' then E.set_auto(rest == 'on')
   elseif action == 'validate' then
     if m.U and m.U.validate then m.U.validate() end
+  elseif action == 'shots' then
+    -- the shot list itself: set <json array> | add <json> | update <k> <json> | remove <k> | clear | from_scenes
+    local sub, payload = (rest or ''):match('^(%S+)%s*(.*)$')
+    local usage = 'shots set <json array> | add <json> | update <k> <json> | remove <k> | clear | from_scenes'
+    local function parse(txt, want)
+      local v, err = json.decode(txt or '')
+      if type(v) ~= 'table' then return nil, 'shots ' .. sub .. ' needs ' .. want .. (err and (': ' .. tostring(err)) or '') end
+      return v
+    end
+    if sub == 'set' then
+      local v, err = parse(payload, 'a JSON array of shots')
+      if not v then return refuse('director', err) end
+      if v.name or v.t0 then v = { v } end   -- one object is a list of one
+      MD.shots = {}
+      for _, sh in ipairs(v) do
+        if type(sh) == 'table' then MD.shots[#MD.shots + 1] = MD.new_shot(sh) end
+      end
+      MD.sort(); MD.save()
+    elseif sub == 'add' then
+      local v, err = parse(payload, 'a JSON shot')
+      if not v then return refuse('director', err) end
+      MD.add(MD.new_shot(v))
+    elseif sub == 'update' then
+      local ks, js = payload:match('^(%d+)%s*(.*)$')
+      local k = tonumber(ks)
+      if not k or not MD.shots[k] then return refuse('director', 'shots update needs a shot number 1..' .. #MD.shots .. ' and a JSON object') end
+      local v, err = parse(js, 'a JSON object of the fields to change')
+      if not v then return refuse('director', err) end
+      local merged = MD.copy(MD.shots[k])
+      for key, val in pairs(v) do merged[key] = val end
+      MD.replace(k, MD.sanitize(merged))
+    elseif sub == 'remove' then
+      local k = tonumber(payload)
+      if not k or not MD.shots[k] then return refuse('director', 'shots remove needs a shot number 1..' .. #MD.shots) end
+      MD.remove(k)
+    elseif sub == 'clear' then
+      MD.clear()
+    elseif sub == 'from_scenes' then
+      local regions = require('lib.regions')
+      local scenes = regions.scan(nil, 5)
+      if #scenes == 0 then return refuse('director', 'no scenes (regions) in the project') end
+      for _, sh in ipairs(MD.from_scenes(scenes)) do MD.shots[#MD.shots + 1] = sh end
+      MD.sort(); MD.save()
+    else
+      return refuse('director', usage)
+    end
+    if m.S then m.S.validate_request = true end
+    action = 'shots ' .. sub
   else
-    return refuse('director', 'start | stop | goto <k> | next | prev | auto on|off | validate')
+    return refuse('director', 'start | stop | goto <k> | next | prev | auto on|off | validate | shots ...')
   end
   local k, s = E.current()
   reply('DIRECTOR', { action = action, active = E.active == true, auto = E.auto == true, current_k = k, current_name = s and s.name or nil,
