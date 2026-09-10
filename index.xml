@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<index version="1" name="Stagehand">
+<index version="1" name="Stagehand" commit="2d9cb4a9e10a9470c6e24117e834cff87dbf5a01">
   <category name="Stagehand">
     <reapack name="Stagehand.lua" type="script" desc="Stagehand - session navigator, showcase director and session overview">
       <metadata>
@@ -13,8 +13,11 @@
         <link rel="website" href="https://github.com/b451c/Stagehand">Repository</link>
         <link rel="website" href="https://b451c.github.io/Stagehand/guide.html">User guide</link>
       </metadata>
-      <version name="1.0.0" author="Bartosz Sroczynski (falami.studio)" time="2026-09-07T19:47:33Z">
-        <changelog><![CDATA[1.0.0 - first release. Navigator: scenes, markers, tracks, items, fuzzy search, jump, audition with auto-stop,
+      <version name="1.0.1" author="Bartosz Sroczynski (falami.studio)" time="2026-09-10T08:59:55Z">
+        <changelog><![CDATA[1.0.1 - agent access: the shot list can be written through the protocol (director shots set / add / update / remove /
+clear / from_scenes) and the MCP tool stagehand_shots_set; the About tab and the log show the package version (1.0.0
+reported 0.1.0-dev); the Pages root redirects to the guide.
+1.0.0 - first release. Navigator: scenes, markers, tracks, items, fuzzy search, jump, audition with auto-stop,
 scene solo / mute with an exact restore, families, focus, groups. Director: shot list with validation, follow-play
 (lanes at locked heights filling the arrange, pinned rows, parents, envelope story mode, page / follow view with
 eased zoom), rehearsal controls, full restore. HUD: dockable caption bar with progress, time, loudness live or from
@@ -28,105 +31,105 @@ sets in bulk (families, folders, selection, scenes), matrix editor, presets, Sta
 wildcards and variants, a sequential renderer with a pre-flight that defuses every blocking dialog, results with
 peak and loudness. Agent access: the control protocol answers agent verbs with JSON, an MCP server and a skill
 ship in the package, three switches gate every change. Verified on Linux, Windows and macOS test machines.]]></changelog>
-        <source main="main">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand.lua</source>
-        <source main="main" file="Stagehand - Navigator.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Navigator.lua</source>
-        <source main="main" file="Stagehand - Director.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Director.lua</source>
-        <source main="main" file="Stagehand - HUD.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20HUD.lua</source>
-        <source main="main" file="Stagehand - Glow toggle.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Glow%20toggle.lua</source>
-        <source main="main" file="Stagehand - Settings.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Settings.lua</source>
-        <source main="main" file="Stagehand - Overview.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Overview.lua</source>
-        <source main="main" file="Stagehand - Recorder.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Recorder.lua</source>
-        <source main="main" file="Stagehand - Stems.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Stems.lua</source>
-        <source main="main" file="Stagehand - Agent.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/Stagehand%20-%20Agent.lua</source>
-        <source file="stagehand/app.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/app.lua</source>
-        <source file="stagehand/config.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/config.lua</source>
-        <source file="stagehand/i18n.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/i18n.lua</source>
-        <source file="stagehand/lang/en.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lang/en.lua</source>
-        <source file="stagehand/lib/arrange.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/arrange.lua</source>
-        <source file="stagehand/lib/ctl.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/ctl.lua</source>
-        <source file="stagehand/lib/easing.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/easing.lua</source>
-        <source file="stagehand/lib/edits.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/edits.lua</source>
-        <source file="stagehand/lib/envelopes.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/envelopes.lua</source>
-        <source file="stagehand/lib/families.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/families.lua</source>
-        <source file="stagehand/lib/items.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/items.lua</source>
-        <source file="stagehand/lib/journal.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/journal.lua</source>
-        <source file="stagehand/lib/json.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/json.lua</source>
-        <source file="stagehand/lib/layout.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/layout.lua</source>
-        <source file="stagehand/lib/log.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/log.lua</source>
-        <source file="stagehand/lib/loudness.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/loudness.lua</source>
-        <source file="stagehand/lib/match.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/match.lua</source>
-        <source file="stagehand/lib/meter.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/meter.lua</source>
-        <source file="stagehand/lib/peaks.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/peaks.lua</source>
-        <source file="stagehand/lib/regions.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/regions.lua</source>
-        <source file="stagehand/lib/search.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/search.lua</source>
-        <source file="stagehand/lib/text.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/text.lua</source>
-        <source file="stagehand/lib/tracks.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/tracks.lua</source>
-        <source file="stagehand/lib/undo.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/undo.lua</source>
-        <source file="stagehand/lib/view.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/view.lua</source>
-        <source file="stagehand/lib/wav.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/lib/wav.lua</source>
-        <source file="stagehand/modules/agent/api.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/agent/api.lua</source>
-        <source file="stagehand/modules/agent/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/agent/init.lua</source>
-        <source file="stagehand/modules/agent/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/agent/selftest.lua</source>
-        <source file="stagehand/modules/agent/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/agent/ui.lua</source>
-        <source file="stagehand/modules/director/editor.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/editor.lua</source>
-        <source file="stagehand/modules/director/engine.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/engine.lua</source>
-        <source file="stagehand/modules/director/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/init.lua</source>
-        <source file="stagehand/modules/director/model.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/model.lua</source>
-        <source file="stagehand/modules/director/resolve.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/resolve.lua</source>
-        <source file="stagehand/modules/director/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/selftest.lua</source>
-        <source file="stagehand/modules/director/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/ui.lua</source>
-        <source file="stagehand/modules/director/validate.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/director/validate.lua</source>
-        <source file="stagehand/modules/glow/engine.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/glow/engine.lua</source>
-        <source file="stagehand/modules/glow/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/glow/init.lua</source>
-        <source file="stagehand/modules/glow/overlay.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/glow/overlay.lua</source>
-        <source file="stagehand/modules/glow/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/glow/selftest.lua</source>
-        <source file="stagehand/modules/glow/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/glow/ui.lua</source>
-        <source file="stagehand/modules/hud/bar.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/hud/bar.lua</source>
-        <source file="stagehand/modules/hud/flash.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/hud/flash.lua</source>
-        <source file="stagehand/modules/hud/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/hud/init.lua</source>
-        <source file="stagehand/modules/hud/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/hud/selftest.lua</source>
-        <source file="stagehand/modules/hud/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/hud/ui.lua</source>
-        <source file="stagehand/modules/navigator/actions.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/navigator/actions.lua</source>
-        <source file="stagehand/modules/navigator/data.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/navigator/data.lua</source>
-        <source file="stagehand/modules/navigator/editors.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/navigator/editors.lua</source>
-        <source file="stagehand/modules/navigator/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/navigator/init.lua</source>
-        <source file="stagehand/modules/navigator/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/navigator/selftest.lua</source>
-        <source file="stagehand/modules/navigator/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/navigator/ui.lua</source>
-        <source file="stagehand/modules/overview/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/overview/init.lua</source>
-        <source file="stagehand/modules/overview/layout.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/overview/layout.lua</source>
-        <source file="stagehand/modules/overview/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/overview/selftest.lua</source>
-        <source file="stagehand/modules/overview/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/overview/ui.lua</source>
-        <source file="stagehand/modules/recorder/checklist.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/recorder/checklist.lua</source>
-        <source file="stagehand/modules/recorder/export.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/recorder/export.lua</source>
-        <source file="stagehand/modules/recorder/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/recorder/init.lua</source>
-        <source file="stagehand/modules/recorder/layout.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/recorder/layout.lua</source>
-        <source file="stagehand/modules/recorder/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/recorder/selftest.lua</source>
-        <source file="stagehand/modules/recorder/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/recorder/ui.lua</source>
-        <source file="stagehand/modules/settings/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/settings/init.lua</source>
-        <source file="stagehand/modules/settings/presets.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/settings/presets.lua</source>
-        <source file="stagehand/modules/settings/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/settings/selftest.lua</source>
-        <source file="stagehand/modules/settings/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/settings/ui.lua</source>
-        <source file="stagehand/modules/stems/engine.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/engine.lua</source>
-        <source file="stagehand/modules/stems/init.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/init.lua</source>
-        <source file="stagehand/modules/stems/model.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/model.lua</source>
-        <source file="stagehand/modules/stems/render.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/render.lua</source>
-        <source file="stagehand/modules/stems/results.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/results.lua</source>
-        <source file="stagehand/modules/stems/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/selftest.lua</source>
-        <source file="stagehand/modules/stems/ui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/modules/stems/ui.lua</source>
-        <source file="stagehand/platform/js.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/platform/js.lua</source>
-        <source file="stagehand/schema.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/schema.lua</source>
-        <source file="stagehand/selftest.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/selftest.lua</source>
-        <source file="stagehand/state.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/state.lua</source>
-        <source file="stagehand/ui/icons.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/ui/icons.lua</source>
-        <source file="stagehand/ui/imgui.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/ui/imgui.lua</source>
-        <source file="stagehand/ui/theme.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/ui/theme.lua</source>
-        <source file="stagehand/ui/widgets.lua">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/ui/widgets.lua</source>
-        <source file="stagehand/presets/Client showcase.json">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/presets/Client%20showcase.json</source>
-        <source file="stagehand/presets/Minimal glow.json">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/presets/Minimal%20glow.json</source>
-        <source file="stagehand/presets/Quick navigation.json">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/presets/Quick%20navigation.json</source>
-        <source file="stagehand/presets/Tutorial.json">https://github.com/b451c/Stagehand/raw/main/Stagehand/stagehand/presets/Tutorial.json</source>
-        <source file="agent/stagehand_mcp.py">https://github.com/b451c/Stagehand/raw/main/Stagehand/agent/stagehand_mcp.py</source>
-        <source file="agent/skills/stagehand/SKILL.md">https://github.com/b451c/Stagehand/raw/main/Stagehand/agent/skills/stagehand/SKILL.md</source>
+        <source main="main">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand.lua</source>
+        <source main="main" file="Stagehand - Navigator.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Navigator.lua</source>
+        <source main="main" file="Stagehand - Director.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Director.lua</source>
+        <source main="main" file="Stagehand - HUD.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20HUD.lua</source>
+        <source main="main" file="Stagehand - Glow toggle.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Glow%20toggle.lua</source>
+        <source main="main" file="Stagehand - Settings.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Settings.lua</source>
+        <source main="main" file="Stagehand - Overview.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Overview.lua</source>
+        <source main="main" file="Stagehand - Recorder.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Recorder.lua</source>
+        <source main="main" file="Stagehand - Stems.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Stems.lua</source>
+        <source main="main" file="Stagehand - Agent.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/Stagehand%20-%20Agent.lua</source>
+        <source file="stagehand/app.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/app.lua</source>
+        <source file="stagehand/config.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/config.lua</source>
+        <source file="stagehand/i18n.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/i18n.lua</source>
+        <source file="stagehand/lang/en.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lang/en.lua</source>
+        <source file="stagehand/lib/arrange.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/arrange.lua</source>
+        <source file="stagehand/lib/ctl.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/ctl.lua</source>
+        <source file="stagehand/lib/easing.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/easing.lua</source>
+        <source file="stagehand/lib/edits.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/edits.lua</source>
+        <source file="stagehand/lib/envelopes.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/envelopes.lua</source>
+        <source file="stagehand/lib/families.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/families.lua</source>
+        <source file="stagehand/lib/items.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/items.lua</source>
+        <source file="stagehand/lib/journal.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/journal.lua</source>
+        <source file="stagehand/lib/json.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/json.lua</source>
+        <source file="stagehand/lib/layout.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/layout.lua</source>
+        <source file="stagehand/lib/log.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/log.lua</source>
+        <source file="stagehand/lib/loudness.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/loudness.lua</source>
+        <source file="stagehand/lib/match.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/match.lua</source>
+        <source file="stagehand/lib/meter.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/meter.lua</source>
+        <source file="stagehand/lib/peaks.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/peaks.lua</source>
+        <source file="stagehand/lib/regions.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/regions.lua</source>
+        <source file="stagehand/lib/search.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/search.lua</source>
+        <source file="stagehand/lib/text.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/text.lua</source>
+        <source file="stagehand/lib/tracks.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/tracks.lua</source>
+        <source file="stagehand/lib/undo.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/undo.lua</source>
+        <source file="stagehand/lib/view.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/view.lua</source>
+        <source file="stagehand/lib/wav.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/lib/wav.lua</source>
+        <source file="stagehand/modules/agent/api.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/agent/api.lua</source>
+        <source file="stagehand/modules/agent/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/agent/init.lua</source>
+        <source file="stagehand/modules/agent/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/agent/selftest.lua</source>
+        <source file="stagehand/modules/agent/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/agent/ui.lua</source>
+        <source file="stagehand/modules/director/editor.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/editor.lua</source>
+        <source file="stagehand/modules/director/engine.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/engine.lua</source>
+        <source file="stagehand/modules/director/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/init.lua</source>
+        <source file="stagehand/modules/director/model.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/model.lua</source>
+        <source file="stagehand/modules/director/resolve.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/resolve.lua</source>
+        <source file="stagehand/modules/director/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/selftest.lua</source>
+        <source file="stagehand/modules/director/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/ui.lua</source>
+        <source file="stagehand/modules/director/validate.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/director/validate.lua</source>
+        <source file="stagehand/modules/glow/engine.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/glow/engine.lua</source>
+        <source file="stagehand/modules/glow/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/glow/init.lua</source>
+        <source file="stagehand/modules/glow/overlay.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/glow/overlay.lua</source>
+        <source file="stagehand/modules/glow/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/glow/selftest.lua</source>
+        <source file="stagehand/modules/glow/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/glow/ui.lua</source>
+        <source file="stagehand/modules/hud/bar.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/hud/bar.lua</source>
+        <source file="stagehand/modules/hud/flash.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/hud/flash.lua</source>
+        <source file="stagehand/modules/hud/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/hud/init.lua</source>
+        <source file="stagehand/modules/hud/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/hud/selftest.lua</source>
+        <source file="stagehand/modules/hud/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/hud/ui.lua</source>
+        <source file="stagehand/modules/navigator/actions.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/navigator/actions.lua</source>
+        <source file="stagehand/modules/navigator/data.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/navigator/data.lua</source>
+        <source file="stagehand/modules/navigator/editors.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/navigator/editors.lua</source>
+        <source file="stagehand/modules/navigator/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/navigator/init.lua</source>
+        <source file="stagehand/modules/navigator/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/navigator/selftest.lua</source>
+        <source file="stagehand/modules/navigator/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/navigator/ui.lua</source>
+        <source file="stagehand/modules/overview/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/overview/init.lua</source>
+        <source file="stagehand/modules/overview/layout.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/overview/layout.lua</source>
+        <source file="stagehand/modules/overview/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/overview/selftest.lua</source>
+        <source file="stagehand/modules/overview/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/overview/ui.lua</source>
+        <source file="stagehand/modules/recorder/checklist.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/recorder/checklist.lua</source>
+        <source file="stagehand/modules/recorder/export.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/recorder/export.lua</source>
+        <source file="stagehand/modules/recorder/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/recorder/init.lua</source>
+        <source file="stagehand/modules/recorder/layout.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/recorder/layout.lua</source>
+        <source file="stagehand/modules/recorder/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/recorder/selftest.lua</source>
+        <source file="stagehand/modules/recorder/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/recorder/ui.lua</source>
+        <source file="stagehand/modules/settings/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/settings/init.lua</source>
+        <source file="stagehand/modules/settings/presets.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/settings/presets.lua</source>
+        <source file="stagehand/modules/settings/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/settings/selftest.lua</source>
+        <source file="stagehand/modules/settings/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/settings/ui.lua</source>
+        <source file="stagehand/modules/stems/engine.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/engine.lua</source>
+        <source file="stagehand/modules/stems/init.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/init.lua</source>
+        <source file="stagehand/modules/stems/model.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/model.lua</source>
+        <source file="stagehand/modules/stems/render.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/render.lua</source>
+        <source file="stagehand/modules/stems/results.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/results.lua</source>
+        <source file="stagehand/modules/stems/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/selftest.lua</source>
+        <source file="stagehand/modules/stems/ui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/modules/stems/ui.lua</source>
+        <source file="stagehand/platform/js.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/platform/js.lua</source>
+        <source file="stagehand/schema.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/schema.lua</source>
+        <source file="stagehand/selftest.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/selftest.lua</source>
+        <source file="stagehand/state.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/state.lua</source>
+        <source file="stagehand/ui/icons.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/ui/icons.lua</source>
+        <source file="stagehand/ui/imgui.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/ui/imgui.lua</source>
+        <source file="stagehand/ui/theme.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/ui/theme.lua</source>
+        <source file="stagehand/ui/widgets.lua">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/ui/widgets.lua</source>
+        <source file="stagehand/presets/Client showcase.json">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/presets/Client%20showcase.json</source>
+        <source file="stagehand/presets/Minimal glow.json">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/presets/Minimal%20glow.json</source>
+        <source file="stagehand/presets/Quick navigation.json">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/presets/Quick%20navigation.json</source>
+        <source file="stagehand/presets/Tutorial.json">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/stagehand/presets/Tutorial.json</source>
+        <source file="agent/stagehand_mcp.py">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/agent/stagehand_mcp.py</source>
+        <source file="agent/skills/stagehand/SKILL.md">https://github.com/b451c/Stagehand/raw/2d9cb4a9e10a9470c6e24117e834cff87dbf5a01/Stagehand/agent/skills/stagehand/SKILL.md</source>
       </version>
     </reapack>
   </category>
