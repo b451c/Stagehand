@@ -56,10 +56,12 @@ Show action list > New action > Load ReaScript.
   companions, the agent access.
 - [Configuration reference](docs/config-reference.md) - every setting with its range and default, generated from the schema.
 - [Companions and checkers](tools/README.md) - the recorder, overview, stems and agent tools.
-- [Demo video](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_1080p.mp4) (4 min, 1080p;
-  a [720p copy](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_720p.mp4) is on the
-  [release page](https://github.com/b451c/Stagehand/releases/latest)). The picture is a scripted tour of the demo session;
-  the narration is a synthetic voice reading the demo script.
+- [Demo video on YouTube](https://www.youtube.com/watch?v=VzbV2THo3BI) (4 min). The files are on the
+  [release page](https://github.com/b451c/Stagehand/releases/latest): English
+  ([1080p](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_1080p.mp4),
+  [720p](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_720p.mp4)) and Polish
+  ([1080p](https://github.com/b451c/Stagehand/releases/latest/download/Stagehand_demo_PL_1080p.mp4)), with subtitles.
+  The picture is a scripted tour of a generated demo session; the narration is a synthetic voice.
 
 ![The Glow overlay lights the tracks that are sounding](docs/images/stagehand_glow.gif)
 
