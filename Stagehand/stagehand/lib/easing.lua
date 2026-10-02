@@ -1,4 +1,4 @@
--- lib/easing.lua - easing curves for the arrange zoom animation (docs/architecture.md, motion tokens).
+-- lib/easing.lua - easing curves for the arrange zoom animation (Director view, director.view.easing).
 -- Every function maps progress p in [0, 1] to [0, 1]; get(name) returns a curve by its settings name
 -- (smoothstep | linear | ease_out), smoothstep when the name is unknown. Lua 5.4; no globals.
 

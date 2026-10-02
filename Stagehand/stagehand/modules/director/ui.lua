@@ -470,8 +470,8 @@ local function draw_issues_panel()
         end
         ImGui.PopID(ctx)
       end
+      ImGui.EndChild(ctx)
     end
-    ImGui.EndChild(ctx)
     ImGui.PopStyleVar(ctx)
     ImGui.PopStyleColor(ctx)
   end
@@ -520,8 +520,8 @@ local function draw_list()
       draw_row_menu()
       ImGui.EndPopup(ctx)
     end
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
   draw_issues_panel()
 end
 

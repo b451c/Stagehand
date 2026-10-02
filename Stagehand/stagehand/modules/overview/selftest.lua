@@ -2,12 +2,14 @@
 -- The plan (hide rule, used lanes by point count) is checked against an independent count; apply is checked
 -- field by field (mixer, video window, master row, every track's visibility / locked height / measured row
 -- height / folder state, every lane's visibility and height, view, scroll); the capture geometry, the page plan
--- and the scroll through every page; restore diff 0. Variant 'companion': after the in-app checks the scenario
+-- and the scroll through every page; the coordinate facts (main window natively and y down, the main display's
+-- height, the monitors; failures X7); restore diff 0. Variant 'companion': after the in-app checks the scenario
 -- writes companion_go.txt and waits for the external driver (tools/overview_capture.py, started by the harness)
 -- to apply, scroll, capture and restore through the ctl protocol, then checks the stitched PNG's size against
--- the geometry. Without the variant the guided mode is exercised instead. Sabotage 'leave_heights' drops the
--- track layout entries before the final restore (the negative control: the restore diff must go red).
--- Lua 5.4; no globals.
+-- the geometry. Without the variant the guided mode is exercised instead (Done restores the layout the capture
+-- applied, Stop keeps it, Done keeps a layout applied before the capture). Sabotage 'leave_heights' drops the track
+-- layout entries before the restore (the guided Done, or the final one): the negative control, the restore diff
+-- must go red. Lua 5.4; no globals.
 
 local layout = require('lib.layout')
 local view = require('lib.view')
@@ -17,6 +19,7 @@ local envelopes = require('lib.envelopes')
 local arrange = require('lib.arrange')
 local ctl = require('lib.ctl')
 local match = require('lib.match')
+local pjs = require('platform.js')
 
 local ST = {}
 
@@ -45,6 +48,66 @@ local function file_exists(p)
   local f = io.open(p, 'rb')
   if f then f:close(); return true end
   return false
+end
+
+local function rect_s(l, t, r, b)
+  if not l then return 'nil' end
+  return string.format('%d,%d-%d,%d', l, t, r, b)
+end
+
+-- macOS: the two coordinate systems as facts (a test run compares them with the Quartz window list) and the
+-- checks that do not depend on the conversion they test: the main display sits at y-down 0,0, and the Stagehand
+-- window measured through js (converted) is where ImGui itself says it is
+local function coordinate_checks(T)
+  local main = reaper.GetMainHwnd()
+  local mh = pjs.main_h()
+  T.fact('coords', pjs.coords_fact())
+  T.fact('coords_main_h', tostring(mh))
+  T.fact('coords_main_cocoa', rect_s(pjs.rect(main)))
+  T.fact('coords_main_quartz', rect_s(pjs.screen_rect(main)))
+  local arr = pjs.arrange_hwnd()
+  if arr then
+    T.fact('coords_arrange_native', rect_s(pjs.rect(arr)))
+    T.fact('coords_arrange_quartz', rect_s(pjs.child_rect(arr)))
+  end
+  for i, m in ipairs(pjs.monitors() or {}) do
+    T.fact('coords_monitor_' .. i, string.format('quartz %s full %s native %s native_full %s', rect_s(m.l, m.t, m.r, m.b),
+      rect_s(m.full[1], m.full[2], m.full[3], m.full[4]), rect_s(m.native[1], m.native[2], m.native[3], m.native[4]),
+      rect_s(m.native_full[1], m.native_full[2], m.native_full[3], m.native_full[4])))
+  end
+  local dl, dt, dr, db = pjs.viewport_quartz(1, 1, false)
+  T.fact('coords_main_display_quartz', rect_s(dl, dt, dr, db))
+  if dl then
+    T.ok('coordinates: the main display at y-down 0,0', dl == 0 and dt == 0 and (not pjs.is_mac or db == mh),
+      string.format('%s main_h=%s', rect_s(dl, dt, dr, db), tostring(mh)))
+  end
+  -- the Stagehand window: ImGui's own position (Quartz on macOS) against js_ReaScriptAPI's rect converted to y down
+  app.set_tab('overview')
+  T.wait(3)
+  -- more than one window carries the exact title (on macOS the docker holding the HUD bar did, 2026-10-02): the one
+  -- with ImGui's window size is ours; the size does not depend on the y conversion under test
+  local sh = nil
+  if app.window.dock == 0 and reaper.JS_Window_ListFind and app.win_w then
+    local _, list = reaper.JS_Window_ListFind('Stagehand', true)
+    for adr in (list or ''):gmatch('[^,]+') do
+      local h = reaper.JS_Window_HandleFromAddress(tonumber(adr))
+      local l, t, r, b = pjs.rect(h)
+      if l and math.abs((r - l) - app.win_w) <= 4 and math.abs((b - t) - app.win_h) <= 4 then sh = h; break end
+    end
+  end
+  if not sh and app.window.dock == 0 then sh = pjs.find_window('Stagehand', true) end
+  local wl, wt, wr, wb = pjs.screen_rect(sh)
+  if wl and S.win_x then
+    local nl, nt, nr, nb = pjs.rect(sh)
+    T.fact('coords_stagehand_window', string.format('imgui %d,%d js_quartz %s js_native %s', math.floor(S.win_x + 0.5), math.floor(S.win_y + 0.5),
+      rect_s(wl, wt, wr, wb), rect_s(nl, nt, nr, nb)))
+    if pjs.is_mac then
+      T.ok('coordinates: Stagehand window js (y down) = ImGui position (+-4)', math.abs(wl - S.win_x) <= 4 and math.abs(wt - S.win_y) <= 4,
+        string.format('js %d,%d imgui %.0f,%.0f', wl, wt, S.win_x, S.win_y))
+    end
+  else
+    T.fact('coords_stagehand_window', 'docked or not found by title')
+  end
 end
 
 local function count_lines(path, pattern)
@@ -195,6 +258,7 @@ function ST.run(T)
   T.fact('journal_entries', journal.count(nil, 'overview'))
 
   -- 3. geometry and pages -----------------------------------------------------------------------------------------------------------
+  coordinate_checks(T)
   local g, gerr = L.geometry()
   if g then
     T.ok('geometry measured', true, L.rect_line(g))
@@ -291,11 +355,38 @@ function ST.run(T)
       T.check('guided: main window suspended', app.suspended, true)
       T.check('guided: first page', c.i, 1)
       T.check('guided: at the top', arrange.scroll_pos(), 0)
+      T.check('guided: the capture applied the layout itself', c.fresh, true)
       local n = #c.pages
-      for _ = 1, n do L.guided_next(); T.wait(2) end
+      for i = 1, n do
+        -- the negative control drops the track entries before Done, whose restore then leaves the heights behind
+        if i == n and T.sabotage == 'leave_heights' then
+          journal.discard(function(e) return e.owner == 'overview' and e.kind == 'layout' end)
+        end
+        L.guided_next()
+        T.wait(2)
+      end
       T.check('guided: ended after the last page', L.capture, nil)
       T.check('guided: main window back', app.suspended, false)
+      T.check('guided: Done restored the layout it applied', L.active, false)
+      T.check('guided: Done left no overview journal entries', journal.count(nil, 'overview'), 0)
       T.fact('guided_pages', n)
+      -- Stop keeps the layout (Restore puts it back); Done after a layout the user applied keeps it too
+      local c2 = L.start_capture('guided', T.out_path('guided_stop'))
+      if c2 then
+        T.wait_until(function() return c2.pending == nil end, 20, 'guided stop: pages planned')
+        L.end_capture('counter')
+        T.wait(2)
+        T.check('guided: Stop keeps the layout applied', L.active, true)
+        local c3 = L.start_capture('guided', T.out_path('guided_kept'))
+        if c3 then
+          T.wait_until(function() return c3.pending == nil end, 20, 'guided kept: pages planned')
+          T.check('guided: a layout applied before is not fresh', c3.fresh, false)
+          for _ = 1, #c3.pages do L.guided_next(); T.wait(1) end
+          T.check('guided: Done keeps a layout applied before the capture', L.active, true)
+        end
+        L.restore('selftest guided stop')
+        T.wait(3)
+      end
     end
   end
 

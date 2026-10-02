@@ -2,7 +2,7 @@
   "stagehand_preset": {
     "name": "Client showcase",
     "description": "A clean recording for a client: focus layout, page view, the caption bar without key hints, live loudness, the beam glow with the cut flash.",
-    "stagehand_version": "0.1.0-dev",
+    "stagehand_version": "1.0.2",
     "schema": 2,
     "created": "2026-09-07"
   },

@@ -1,4 +1,4 @@
--- modules/recorder/layout.lua - the screen layout at the start of a recording (--): pick the monitor, size the main window, send a named window to a
+-- modules/recorder/layout.lua - the screen layout at the start of a recording: pick the monitor, size the main window, send a named window to a
 -- docker, show and place the video window. Every change is journaled (owner 'recorder': window_rect, dock_id,
 -- toggle) and put back by restore(). A layout diary (ctl.note -> layout.txt and the log) records what was
 -- wanted and what REAPER did, the only way to debug a remote layout. Needs js_ReaScriptAPI for the window
@@ -81,7 +81,19 @@ end
 
 -- pieces ------------------------------------------------------------------------------------------------------------
 
+-- Coordinates (platform/js.lua, failures X7): the monitors, the wanted rects, the diary, the RECT line and the hud
+-- file are screen px, y down (Quartz on macOS); windows move through js.place_rect. Only the journal's window_rect
+-- entries hold js_ReaScriptAPI's native rect, which its restorer hands back to JS_Window_SetPosition unchanged.
+
+-- a window's rect, y down: { l, t, w, h }
 local function rect_of(hwnd)
+  local l, t, r, b = js.screen_rect(hwnd)
+  if not l then return nil end
+  return { l, t, r - l, b - t }
+end
+
+-- the same window in native coordinates, for the journal: { l, t, w, h } as JS_Window_SetPosition takes them
+local function native_rect_of(hwnd)
   local l, t, r, b = js.rect(hwnd)
   if not l then return nil end
   return { l, t, r - l, b - t }
@@ -96,8 +108,8 @@ local function place_main(mon)
   local mode = cfg('main_window') or 'maximize'
   if mode == 'keep' then note('main window kept'); return end
   local main = reaper.GetMainHwnd()
-  local was = rect_of(main)
-  if not was then note('main window rect unreadable'); return end
+  local was, was_native = rect_of(main), native_rect_of(main)
+  if not was or not was_native then note('main window rect unreadable'); return end
   local want
   if mode == 'maximize' then
     want = { mon.l, mon.t, mon.w, mon.h }
@@ -106,8 +118,8 @@ local function place_main(mon)
     local h = math.min(mon.h, math.floor(tonumber(cfg('main_h')) or 1080))
     want = { mon.l + (mon.w - w) // 2, mon.t + (mon.h - h) // 2, w, h }
   end
-  journal.add({ kind = 'window_rect', key = 'main', was = was, owner = 'recorder' })
-  js.set_rect(main, want[1], want[2], want[3], want[4])
+  journal.add({ kind = 'window_rect', key = 'main', was = was_native, owner = 'recorder' })
+  js.place_rect(main, want[1], want[2], want[3], want[4])
   local now = rect_of(main)
   RL.last.main = { was = was, want = want, now = now }
   note('main window %s: was %s -> wanted %s -> now %s (monitor %d,%d %dx%d)', mode, fmt_rect(was), fmt_rect(want), fmt_rect(now), mon.l, mon.t, mon.w, mon.h)
@@ -164,7 +176,7 @@ function RL.video_target(mon)
     dx = math.floor(tonumber(cfg('video.dx')) or 0), dy = math.floor(tonumber(cfg('video.dy')) or 0), title = math.floor(tonumber(cfg('video.title_px')) or 28) }
   local arr = js.arrange_hwnd()
   local al, at, ar = js.child_rect(arr)
-  local ml = js.rect(reaper.GetMainHwnd())
+  local ml = js.screen_rect(reaper.GetMainHwnd())
   local x, y, w, h = mon.l, mon.t, V.w, V.h
   if V.place == 'top_right' then
     x, y = mon.l + mon.w - w + V.dx, mon.t + V.dy
@@ -202,9 +214,9 @@ function RL.place_video()
   local want, place = RL.video_target(mon)
   local title = reaper.JS_Window_GetTitle(hw)
   if not journal.has('window_rect', 'video') then
-    journal.add({ kind = 'window_rect', key = 'video', name = title, was = was, owner = 'recorder' })
+    journal.add({ kind = 'window_rect', key = 'video', name = title, was = native_rect_of(hw), owner = 'recorder' })
   end
-  js.set_rect(hw, want[1], want[2], want[3], want[4])
+  js.place_rect(hw, want[1], want[2], want[3], want[4])
   local now = rect_of(hw)
   RL.last.video = { found = true, was = was, want = want, now = now, place = place }
   note('video window %s: was %s -> wanted %s -> now %s', place, fmt_rect(was), fmt_rect(want), fmt_rect(now))
@@ -271,17 +283,18 @@ function RL.rect_line(hud_rect)
   local main = rect_of(reaper.GetMainHwnd())
   local arr = rect_of(js.arrange_hwnd())
   local vid = rect_of(js.find_video_window())
-  local mon = main and { js.monitor_of(main[1], main[2], main[1] + main[3], main[2] + main[4], true) } or {}
+  local mon = main and { js.monitor_of_quartz(main[1], main[2], main[1] + main[3], main[2] + main[4], true) } or {}
   return string.format('RECT main %s | arrange %s | video %s | hud %s | monitor %s | dockers %s',
     fmt_rect(main), fmt_rect(arr), fmt_rect(vid), fmt_rect(hud_rect), #mon >= 4 and string.format('%d,%d-%d,%d', mon[1], mon[2], mon[3], mon[4]) or '?', RL.dockers_text())
 end
 
--- the hud file lines: the bar's painted rect, the full monitor (what a screen recorder captures) and the work area
+-- the hud file lines: the bar's painted rect, the full monitor (what a screen recorder captures) and the work area,
+-- all y down (the bar rect is ImGui's, Quartz on macOS; the monitor is looked up under it in the same system)
 function RL.hud_lines(bar)
   if not bar or not bar.x then return nil end
   local l, t, r, b = math.floor(bar.x), math.floor(bar.y), math.floor(bar.x + bar.w), math.floor(bar.y + bar.h)
-  local fl, ft, fr, fb = js.monitor_of(l, t, r, b, false)
-  local wl, wt, wr, wb = js.monitor_of(l, t, r, b, true)
+  local fl, ft, fr, fb = js.monitor_of_quartz(l, t, r, b, false)
+  local wl, wt, wr, wb = js.monitor_of_quartz(l, t, r, b, true)
   if not fl then
     local m = rect_of(reaper.GetMainHwnd()) or { 0, 0, 1920, 1080 }
     fl, ft, fr, fb = m[1], m[2], m[1] + m[3], m[2] + m[4]

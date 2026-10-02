@@ -214,7 +214,7 @@ local function draw_search()
   end
   local avail = ImGui.GetContentRegionAvail(ctx)
   local clear_w = S.search ~= '' and (BTN + GAP) or 0
-  local changed, value, submitted, active = widgets.search_field(ctx, '##search', S.search, t('nav.search.hint'), avail - clear_w)
+  local changed, value, submitted, active = widgets.search_field(ctx, '##nav_search', S.search, t('nav.search.hint'), avail - clear_w)
   S.search_active = active
   if changed then
     S.search = value
@@ -573,8 +573,8 @@ local function draw_list()
       draw_row_menu()
       ImGui.EndPopup(ctx)
     end
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 -- footer ----------------------------------------------------------------------------------------------------------

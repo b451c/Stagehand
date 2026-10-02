@@ -82,6 +82,15 @@ function B.fit_caption(s, max_w, sizes, max_lines, mfn)
   return lines, size, true
 end
 
+-- the progress row's height: 0 when hud.show_progress is off or the style is 'off' (the caption gets the room, as
+-- with style 'off'), else hud.progress.height_px (4); cfg = H.cfg
+function B.progress_h(cfg)
+  cfg = cfg or {}
+  local P = cfg.progress or {}
+  if cfg.show_progress == false or P.style == 'off' then return 0 end
+  return tonumber(P.height_px) or 4
+end
+
 function B.time_string(pos, fmt)
   if fmt == 'timecode' then
     return reaper.format_timestr_pos(pos, '', 5)
@@ -262,8 +271,7 @@ local function body()
   local pad = 10
   local pos = view.position()
   local time_s = H.cfg.show_time ~= false and B.time_string(pos, H.cfg.time_format) or nil
-  local P = H.cfg.progress or {}
-  local prog_h = P.style ~= 'off' and (tonumber(P.height_px) or 4) or 0
+  local prog_h = B.progress_h(H.cfg)
   local caption = B.caption_text()
   local title = B.title_text()
   local title_px = tonumber(fs.title_px) or 24

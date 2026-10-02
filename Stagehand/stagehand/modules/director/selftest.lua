@@ -196,10 +196,12 @@ function ST.run(T)
 
   -- 3. start: shot 1 -------------------------------------------------------------------------------------------------
   reaper.SetEditCurPos2(0, 0.5, false, false)
+  E.auto = false   -- the saved UI state after a row preview: Start run must switch auto-follow back on
   local t_start = reaper.time_precise()
   E.start('selftest')
   T.fact('start_ms', string.format('%.1f', (reaper.time_precise() - t_start) * 1000))
   T.check('run active', E.active, true)
+  T.check('start run switches auto-follow on', E.auto, true)
   T.check('shot 1 applied', E.k, 1)
   T.wait_until(function() return E.verify == nil end, 30, 'verify settled shot 1')
   local L = E.last
@@ -403,6 +405,15 @@ function ST.run(T)
   T.check('shot 1 applied again after the ruler change', E.k, 1)
   T.wait_until(function() return E.verify == nil end, 30, 'verify settled after ruler')
   config.set('director.ruler.mode', 'keep', 'project')
+
+  -- 7c. a row preview pauses auto-follow; switching it back on returns to the shot under the cursor (0.5 s = shot 1)
+  E.preview(2)
+  T.check('preview lays the row out', E.k, 2)
+  T.check('preview pauses auto-follow', E.auto, false)
+  T.wait_until(function() return E.verify == nil end, 30, 'verify settled after the preview')
+  E.set_auto(true)
+  T.check('auto-follow back on returns to the cursor shot', E.k, 1)
+  T.wait_until(function() return E.verify == nil end, 30, 'verify settled after auto on')
 
   -- 8. stop: everything back --------------------------------------------------------------------------------------------------
   journal.flush()

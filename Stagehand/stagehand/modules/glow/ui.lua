@@ -277,8 +277,8 @@ local function draw_profiles()
     y = y + rh
     row_text(dl, x0 + 6, y, t('glow.profiles.hint'), 'dim', w - 12, 'small', rh)
     next_line(x0, y + rh)
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_empty()

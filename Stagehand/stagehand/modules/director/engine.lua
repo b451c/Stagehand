@@ -382,9 +382,12 @@ end
 
 -- run control --------------------------------------------------------------------------------------------------------
 
+-- every start switches auto-follow on (Start run, a jump from idle, the ctl / agent / recorder starts) except a
+-- row preview, which pauses it itself; the saved UI state may hold auto off from an earlier preview
 function E.start(why)
   if E.active then return false end
   if #MD.shots == 0 then return false end
+  if why ~= 'preview' then E.auto = true end
   E.rescan()
   E.journaled = {}
   E.switch_log = {}

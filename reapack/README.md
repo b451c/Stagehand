@@ -8,7 +8,8 @@ Stagehand ships as one ReaPack package ("Stagehand", category `Stagehand`) from 
 - The package files live under `Stagehand/` at the repository root; the main action `Stagehand/Stagehand.lua` carries the
   ReaPack header (`@description`, `@version`, `@author`, `@provides`, `@changelog`, `@link`, `@about`).
 - Every file the package needs is listed in `@provides` of the main action (module launchers, `stagehand/**/*.lua`,
-  `stagehand/presets/*.json`, optional fonts), so a fresh install from the index is complete.
+  `stagehand/presets/*.json`, the MCP server `agent/stagehand_mcp.py` and the agent skill
+  `agent/skills/stagehand/SKILL.md`), so a fresh install from the index is complete.
 
 ## Versioning
 Semantic versions `MAJOR.MINOR.PATCH`; pre-releases `1.0.0-beta.N` (ReaPack shows them only with pre-releases enabled).
@@ -32,10 +33,11 @@ so the source URLs pin the commit, and commits the index back (`[skip ci]`). Sta
    (`reaper.ReaPack_AddSetRepository` + `ReaPack_ProcessQueue`) and run the installed action.
 4. Commit, tag `vX.Y.Z`, push; the workflow writes the final `index.xml`; GitHub Pages serves `docs/` (Settings >
    Pages > Deploy from a branch > main, /docs) so `docs/guide.html` is the user guide URL.
-5. Forum post from `docs/forum-post-draft.md` (ASCII hyphens) with the video link.
+5. The announcement in the REAPER forum thread (ASCII hyphens) with the video link.
 
 ## Dependencies declared to the user
-- ReaImGui (required, ReaTeam Extensions repository, installed through ReaPack) - the app refuses to start without it and
-  says how to install it.
+- ReaImGui (required, ReaTeam Extensions repository, installed through ReaPack by the user: a ReaPack index cannot
+  declare a dependency, and `index.xml` declares none) - the app refuses to start without it and says how to install it.
 - js_ReaScriptAPI (optional: glow overlay, screen layout, overview capture).
-- SWS (optional: a few convenience actions).
+- SWS (optional: opens links and folders; a stems batch switches the render statistics and offline media preferences
+  through it and puts them back after).

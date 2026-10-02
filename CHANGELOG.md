@@ -2,6 +2,31 @@
 
 All notable changes to Stagehand for REAPER. Format: Keep a Changelog; versions follow semantic versioning.
 
+## 1.0.2 - 2026-10-02
+
+- **Agent access** is off by default (Agent access, Allow changes, Allow renders), as the announcement said. The
+  switches apply to AI agents: everything the MCP server sends. The companion tools you start yourself (recorder,
+  overview capture, stems checker) are not affected. With Agent access on, the put-back verbs always work (nav clear /
+  restore, director stop / validate, the stop commands); an agent can read but never change the switches; the raw tool
+  never starts a render and refuses `config set agent.*`.
+- **Stems**: a batch keeps the media online when REAPER is not the active app. With REAPER's preference "Set media items
+  offline when application is not active" a batch started from another app (an agent in a terminal) rendered silence;
+  the pre-flight now shows the preference, the batch switches it off (SWS) and puts it back after, and a silent result
+  names offline media as the likely cause. Bulk add (one stem per family / folder / scene) no longer appends " 2" to
+  every name. An aborted batch puts REAPER's render-statistics preference back.
+- **macOS with more than one display**: the overview capture crop, the recorder's window layout and video placement and
+  the stems matrix dialog used two different coordinate systems and went wrong with REAPER on a display above or below
+  the main one; one conversion now covers them. Rect replies, the hud file and `vid` are screen pixels, y down.
+- **Director**: Start run switches auto-follow on (a row preview still pauses it).
+- **Overview**: Done on the last page of a guided capture restores the layout the capture applied.
+- **Glow** reacts to edits of the family rules and marker classes; **HUD** honours `hud.show_progress`.
+- **Control protocol**: values that contain spaces or quotes are written as `key="..."` (results paths with spaces broke
+  the stems checker).
+- ReaImGui: child windows are closed only when they opened (avoids an error in very small docked windows).
+- The Navigator's and the Settings' search fields no longer share a text buffer.
+- Documentation: the full list of MCP tools, the ReaImGui install note (it is not a declared dependency), Glow's Edge
+  outline and slider counts, guided capture, the offline-media row, and a few stale notes.
+
 ## 1.0.1 - 2026-09-10
 
 - Agent access: the shot list can be written through the protocol (`director shots set | add | update | remove | clear |

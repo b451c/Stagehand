@@ -6,7 +6,9 @@
 -- could block an unattended run is refused before the batch starts (empty range, unsaved project with a relative
 -- folder, colliding file names) or never provoked (skip-silent bit, render statistics read while the preference
 -- is off). Everything the run changed (solo, mute, master FX, send mutes, render settings) is restored through
--- the journal after each stem / the batch, on Stop, on a frame error and at exit. Lua 5.4; no globals.
+-- the journal after each stem / the batch, on Stop, on a frame error and at exit; the two preferences a batch
+-- switches (render statistics, media offline when REAPER is not the active app) are put back at the same points.
+-- Lua 5.4; no globals.
 
 local log = require('lib.log')
 local config = require('config')
@@ -20,7 +22,8 @@ local R = require('modules.stems.render')
 
 local t = i18n.t
 
-local E = { active = false, co = nil, stop_requested = false, run = nil, results = nil, msg = '', msg_frames = 0, last_error = nil }
+-- skip_online: the self-test's negative control renders without keep_media_online (sabotage 'no_online')
+local E = { active = false, co = nil, stop_requested = false, run = nil, results = nil, msg = '', msg_frames = 0, last_error = nil, skip_online = false }
 
 local app
 local STEM_KINDS = { solo = true, mute = true, master_fx = true, send_mute = true }
@@ -149,6 +152,20 @@ function E.preflight(subset)
       break
     end
   end
+  -- 9. media offline: REAPER's offline-when-inactive preference (a batch from an agent runs with REAPER in the
+  -- background) or sources the user took offline would render silence (failure note X6)
+  local pref = R.offline_inactive()
+  local mo = R.media_online()
+  local n_off = mo and (mo.total - mo.online) or 0
+  if (pref ~= nil and pref ~= 0) or n_off > 0 then
+    if not R.can_keep_online() then
+      add('warn', 'offline', t('stems.pf.offline_manual'))
+    elseif pref ~= nil and pref ~= 0 then
+      add('info', 'offline', string.format(t('stems.pf.offline_sws'), n_off, mo and mo.total or 0))
+    else
+      add('info', 'offline', string.format(t('stems.pf.offline_sources'), n_off, mo and mo.total or 0))
+    end
+  end
   local counts = { error = 0, warn = 0, info = 0, ok = 0 }
   for _, r in ipairs(rows) do counts[r.level] = (counts[r.level] or 0) + 1 end
   return rows, counts
@@ -264,10 +281,18 @@ local function run(list)
   local results = { started = os.date('%Y-%m-%d %H:%M:%S'), project = state.project_name(), dir = dir, format = st.format,
     rows = {}, n = #list, ok = 0, failed = 0, skipped = 0, silent = 0 }
   E.results = results
-  local prev_stats = nil
-  if config.get('stems.results.reaper_stats') ~= false then prev_stats = R.enable_stats() end
+  -- the preferences switched for the batch live on run_ so E.abort puts them back too (frame error, Restore, exit)
+  run_.prev_stats, run_.prev_offline, run_.brought_online = nil, nil, 0
+  if config.get('stems.results.reaper_stats') ~= false then run_.prev_stats = R.enable_stats() end
   run_.stats_on = R.stats_enabled()
-  selftest(string.format('STEMS START n=%d dir=%s stats=%s', #list, dir, tostring(run_.stats_on)))
+  if not E.skip_online then run_.prev_offline, run_.brought_online = R.keep_media_online() end
+  results.offline_pref_was, results.brought_online = run_.prev_offline, run_.brought_online
+  if log.selftest_armed() then
+    local mo = R.media_online()
+    selftest(string.format('STEMS START n=%d dir=%s stats=%s offline_pref=%s offline_pref_was=%s online=%s brought_online=%d skip_online=%s',
+      #list, dir, tostring(run_.stats_on), tostring(R.offline_inactive()), tostring(run_.prev_offline),
+      mo and (mo.online .. '/' .. mo.total) or 'n/a', run_.brought_online or 0, tostring(E.skip_online == true)))
+  end
   app.emit('stems_active', true)
   local foreign = {}
   for n, k in ipairs(list) do
@@ -338,7 +363,9 @@ local function run(list)
   results.stopped = E.stop_requested and #results.rows < #list
   run_.phase = 'finish'
   R.restore_settings()
-  R.restore_stats(prev_stats)
+  R.restore_stats(run_.prev_stats)
+  R.restore_offline(run_.prev_offline)
+  run_.prev_stats, run_.prev_offline = nil, nil
   journal.flush()
   results.finished = os.date('%Y-%m-%d %H:%M:%S')
   results.seconds = reaper.time_precise() - run_.t_start
@@ -403,9 +430,16 @@ end
 -- put everything back and drop the batch (frame error, Restore, exit)
 function E.abort(why)
   local was = E.active
+  local run_ = E.run
   E.active, E.co = false, nil
   local stats = journal.restore(journal.owner_pred('stems'))
   journal.flush()
+  -- the preferences the batch switched (render statistics, media offline when inactive)
+  if run_ then
+    R.restore_stats(run_.prev_stats)
+    R.restore_offline(run_.prev_offline)
+    run_.prev_stats, run_.prev_offline = nil, nil
+  end
   if was then
     app.emit('stems_active', false)
     say(string.format(t('stems.msg.aborted'), tostring(why), stats.restored))

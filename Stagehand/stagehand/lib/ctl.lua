@@ -5,7 +5,7 @@
 --   state      append-only replies: "<time_precise> TOKEN key=value ..." (the driver greps for " TOKEN")
 --   hud        the HUD bar rect, the monitor rect and the work area (logical px, y down) written on arm
 --   layout.txt the layout diary (what was wanted and what REAPER did; the only way to debug a remote layout)
---   reply_N.json a JSON reply (the agent verbs, M7): the token line names it as file=reply_N.json; the last
+--   reply_N.json a JSON reply (the agent verbs): the token line names it as file=reply_N.json; the last
 --              REPLY_KEEP files stay, older ones are deleted
 -- Verbs are registered by the modules (ctl.on('ping', fn)); dispatch(line) splits the verb from its arguments and
 -- returns what the handler returned. Without a saved project there is no ctl dir: available() is false and the
@@ -82,7 +82,20 @@ function M.bind()
   S.last_cmd, S.last_cmd_t, S.last_cmd_frame = nil, nil, nil
 end
 
--- write one reply token: write('SCROLL', '12 400 0 2000') or write('PLAY_POS', { pos = 1.234 })
+-- one value as the protocol writes it (the rule tools/stagehand_ctl.py and the MCP server parse): raw unless it
+-- holds whitespace or a double quote, then "..." with \ -> \\ and " -> \" inside; anything else stays raw (a Windows
+-- path without spaces keeps its backslashes). A line break becomes a space first: a reply is one line. A parser
+-- reads key=value pairs until the first word that is not one; the rest of the line is free text.
+function M.quote(v)
+  local s = (tostring(v):gsub('[\r\n]+', ' '))
+  if not s:find('[%s"]') then return s end
+  s = s:gsub('\\', '\\\\')
+  s = s:gsub('"', '\\"')
+  return '"' .. s .. '"'
+end
+
+-- write one reply token: write('SCROLL', '12 400 0 2000') (free text, raw) or write('PLAY_POS', { pos = 1.234 })
+-- (key=value pairs, sorted, each value through M.quote)
 function M.write(token, extra)
   local parts = { string.format('%.4f', reaper.time_precise()), token }
   if type(extra) == 'table' then
@@ -92,7 +105,7 @@ function M.write(token, extra)
     for _, k in ipairs(keys) do
       local v = extra[k]
       if type(v) == 'number' then v = string.format('%.3f', v):gsub('%.?0+$', '') end
-      parts[#parts + 1] = k .. '=' .. tostring(v)
+      parts[#parts + 1] = k .. '=' .. M.quote(v)
     end
   elseif extra ~= nil and extra ~= '' then
     parts[#parts + 1] = tostring(extra)
@@ -179,19 +192,32 @@ function M.verbs()
   return out
 end
 
+-- The agent marker: every line the MCP server (agent/stagehand_mcp.py, AGENT_MARK) writes starts with "@agent "
+-- before the verb. dispatch() strips it before the verb lookup and M.from_agent is true while the handler of a
+-- marked line runs, so the agent switches (modules/agent) can gate the companions' verbs for agents only; the
+-- user's own drivers write unmarked lines and are not affected. A guardrail for well-behaved agents, not a lock.
+M.AGENT_MARK = '@agent'
+M.from_agent = false
+
 -- runs a command line; returns true when a handler took it
 function M.dispatch(line, frame)
   line = tostring(line or ''):match('^%s*(.-)%s*$')
+  local from_agent = false
+  if line == M.AGENT_MARK or line:sub(1, #M.AGENT_MARK + 1):match('^' .. M.AGENT_MARK .. '%s$') then
+    from_agent, line = true, line:sub(#M.AGENT_MARK + 1):match('^%s*(.-)$')
+  end
   if line == '' then return false end
   local verb, args = line:match('^(%S+)%s*(.*)$')
-  S.last_cmd, S.last_cmd_t, S.last_cmd_frame = line, reaper.time_precise(), frame
+  S.last_cmd, S.last_cmd_t, S.last_cmd_frame, S.last_from_agent = line, reaper.time_precise(), frame, from_agent
   S.n_cmds = S.n_cmds + 1
   local fn = handlers[verb]
   if not fn then
     M.write('UNKNOWN', line)
     return false
   end
+  M.from_agent = from_agent
   local ok, err = pcall(fn, args, line)
+  M.from_agent = false
   if not ok then
     log.error('ctl handler %s failed: %s', verb, tostring(err))
     M.write('ERROR', verb .. ' ' .. tostring(err))

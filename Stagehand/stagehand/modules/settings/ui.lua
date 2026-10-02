@@ -506,7 +506,7 @@ local function draw_scope_and_search()
   local chosen = widgets.segmented(ctx, '##scope', options, S.scope)
   if chosen then S.scope = chosen; S.dirty = true; S.errors = {} end
   next_line(x0, y0 + h + GAP)
-  local changed, v, _, active = widgets.search_field(ctx, '##search', S.search, t('set.search.hint'))
+  local changed, v, _, active = widgets.search_field(ctx, '##set_search', S.search, t('set.search.hint'))
   if changed then S.search = v end
   S.search_active = active
   if S.focus_search then
@@ -654,8 +654,8 @@ local function draw_body()
       y = y + ROW_H
     end
     next_line(x0, y + theme.space[2])
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_footer()

@@ -1,6 +1,6 @@
 -- modules/navigator/editors.lua - the three small editors behind the navigator menu: family chips, marker
 -- classes and groups. Each edits a copy of the config list and saves it to the global file or to this project
--- (config.lua). The full Settings window with search and presets arrives in M4. Lua 5.4; no globals.
+-- (config.lua). The Settings tab jumps here for these three lists. Lua 5.4; no globals.
 
 local theme = require('ui.theme')
 local widgets = require('ui.widgets')

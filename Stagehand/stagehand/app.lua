@@ -4,7 +4,7 @@
 -- run(opts): loads ReaImGui (ui/imgui.lua), config, the theme, probes capabilities (platform/js.lua), creates
 -- the context and runs the frame loop under xpcall. A frame error never freezes REAPER: the traceback goes to
 -- the log and to a copyable error panel, every module restores what it changed, and the loop keeps running so
--- the user can read it. Modules register through M.register (contract: docs/architecture.md section 3).
+-- the user can read it. Modules register through M.register (name + init, tick, draw, selftest, restore, shutdown).
 -- Launchers ("Stagehand - Navigator.lua") set ExtState launch_tab; when the app already runs (heartbeat) the
 -- launcher only switches the tab. Lua 5.4; no globals.
 

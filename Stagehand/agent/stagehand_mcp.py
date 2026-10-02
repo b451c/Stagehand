@@ -12,29 +12,120 @@ Install (the Agent tab copies these):
     {"mcpServers": {"stagehand": {"command": "python3", "args": ["/path/to/Stagehand/agent/stagehand_mcp.py"]}}}
 
 Rules the tools enforce or state: nothing here saves the project; stems_render needs confirm=true (the agent asks
-the user in the conversation first); the user's switches in the Agent tab can refuse any change; every change
-goes through Stagehand's journal and is restored like the user's own.
+the user in the conversation first) and stagehand_raw never renders; the user's three switches in the Agent tab
+(Agent access, Allow changes, Allow renders; all off until the user turns them on) can refuse anything and can be
+read but never set by an agent; every change goes through Stagehand's journal and is restored like the user's own.
+
+Every line this server writes starts with the agent marker AGENT_MARK ("@agent ", the same as lib/ctl.lua's
+M.AGENT_MARK): Stagehand strips it and applies the switches to the companions' verbs (arm, play, goto, overview
+apply, stems render, ...) only for marked lines, so the companion tools the user starts are not affected.
 
 --selftest --ctl <folder> --out <json> runs the protocol in-process against a live Stagehand and writes a verdict
-(the test harness runs it as the companion of its agent scenario).
+(the test harness runs it as the companion of its agent scenario). --check runs the offline checks (the token
+parser, the raw line guard, the access hints, the version) without Stagehand; exit 0 when they pass.
 """
 import argparse
 import json
 import os
+import re
 import sys
 import time
 
 PROTOCOL_VERSIONS = ('2025-06-18', '2025-03-26', '2024-11-05')
 SERVER_NAME = 'stagehand'
-SERVER_VERSION = '1.0.0'
 DEFAULT_TIMEOUT = 15.0
 HELLO_NAME = 'MCP agent'
+AGENT_MARK = '@agent'   # must equal M.AGENT_MARK in Stagehand/stagehand/lib/ctl.lua
+
+
+def package_version():
+    """The package version from the ReaPack header of Stagehand.lua next to agent/ (the Lua side reads it the same
+    way, app.lua read_version); 'unknown' when the file is not there."""
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'Stagehand.lua')
+    try:
+        with open(path, encoding='utf-8', errors='replace') as f:
+            m = re.search(r'@version\s+(\S+)', f.read(4000))
+        if m:
+            return m.group(1)
+    except OSError:
+        pass
+    return 'unknown'
+
+
+SERVER_VERSION = package_version()
 
 
 # --- the protocol client ----------------------------------------------------------------------------------------------
 
 class CtlError(RuntimeError):
     pass
+
+
+# what the agent should tell the user when one of the switches refused (the user owns them, in the Agent tab)
+ACCESS_HINTS = (
+    ('agent access is off', 'Ask the user to turn on "Agent access" in Stagehand\'s Agent tab, then try again; do not '
+                            'work around it.'),
+    ('changes are off', 'Reads still work. Ask the user to turn on "Allow changes" in Stagehand\'s Agent tab if they '
+                        'want this change; do not work around it.'),
+    ('renders are off', 'Ask the user to turn on "Allow renders" (and "Allow changes") in Stagehand\'s Agent tab if '
+                        'they want the batch; do not work around it.'),
+    ('belong to the user', 'Only the user changes the agent switches, in Stagehand\'s Agent tab.'),
+)
+ACCESS_OFF = 'Agent access is off in Stagehand (it is off until the user turns it on). ' + ACCESS_HINTS[0][1]
+
+
+def with_hint(msg):
+    """A refusal by one of the switches + what to ask the user (other errors unchanged)."""
+    low = msg.lower()
+    for phrase, hint in ACCESS_HINTS:
+        if phrase in low:
+            return '%s. %s' % (msg.rstrip('. '), hint)
+    return msg
+
+
+# the token line: "<time> TOKEN key=value ... rest". key=value pairs run until the first word that is not one; a
+# value is "..." (inside, \\ is a backslash and \" a quote; lib/ctl.lua M.write quotes a value with whitespace or
+# a quote) or a run of non-space characters (backslashes kept: Windows paths). The same rule as tools/stagehand_ctl.py.
+_PAIR = re.compile(r'([^\s=]+)=(?:"((?:[^"\\]|\\.)*)"(?=\s|$)|(\S*))')
+_UNESCAPE = re.compile(r'\\([\\"])')
+
+
+def parse_token_line(line):
+    """'<t> TOKEN k=v k2="a b" rest' -> (TOKEN, {k: v}, rest_text); (None, {}, '') for a line without a token."""
+    m = re.match(r'\s*(\S+)\s+(\S+)', line)
+    if not m:
+        return None, {}, ''
+    token, pos, kv = m.group(2), m.end(), {}
+    while True:
+        ws = re.compile(r'\s*').match(line, pos)
+        pos = ws.end()
+        p = _PAIR.match(line, pos)
+        if not p or pos >= len(line):
+            break
+        if p.group(2) is not None:
+            kv[p.group(1)] = _UNESCAPE.sub(r'\1', p.group(2))
+        else:
+            kv[p.group(1)] = p.group(3)
+        pos = p.end()
+    return token, kv, line[pos:].strip()
+
+
+def raw_refusal(line):
+    """Why stagehand_raw must not send this line (None = it may): one line only, never a render (that is
+    stagehand_stems_render with the user's confirm=true), never the user's agent switches."""
+    if '\n' in line or '\r' in line:
+        return 'stagehand_raw sends one line only'
+    words = line.split()
+    if words and words[0] == AGENT_MARK:
+        words = words[1:]
+    verb = words[0].lower() if words else ''
+    args = [w.lower() for w in words[1:]]
+    if verb == 'stems' and args and args[0].startswith('render'):
+        return ('stagehand_raw never renders: use stagehand_stems_render, with confirm=true only after the user said '
+                'yes in the conversation')
+    if verb == 'config' and len(args) >= 2 and args[0] in ('set', 'reset') and (args[1] == 'agent' or args[1].startswith('agent.')):
+        return 'the agent switches (agent.*) belong to the user: only the user changes them, in Stagehand\'s Agent tab'
+    return None
 
 
 def discovery_path():
@@ -70,7 +161,11 @@ class Ctl:
             return 0
 
     def send(self, line):
+        """Write one command line, marked as an agent's (AGENT_MARK; Stagehand strips it)."""
         os.makedirs(self.dir, exist_ok=True)
+        line = line.strip()
+        if line.split(None, 1)[:1] != [AGENT_MARK]:
+            line = AGENT_MARK + ' ' + line
         tmp = self.cmd_path + '.tmp'
         with open(tmp, 'w', encoding='utf-8') as f:
             f.write(line + '\n')
@@ -78,17 +173,7 @@ class Ctl:
 
     @staticmethod
     def parse(line):
-        parts = line.split()
-        if len(parts) < 2:
-            return None, {}, ''
-        kv, rest = {}, []
-        for p in parts[2:]:
-            if '=' in p and not rest:
-                k, v = p.split('=', 1)
-                kv[k] = v
-            else:
-                rest.append(p)
-        return parts[1], kv, ' '.join(rest)
+        return parse_token_line(line)
 
     def lines_after(self, mark):
         try:
@@ -112,7 +197,7 @@ class Ctl:
                         data = self.read_reply(kv['file'])
                     return tok, kv, rest, data
                 if tok == 'ERROR':
-                    raise CtlError(ln.split(' ', 2)[2] if ln.count(' ') >= 2 else ln)
+                    raise CtlError(with_hint(ln.split(' ', 2)[2] if ln.count(' ') >= 2 else ln))
                 if tok == 'UNKNOWN':
                     raise CtlError('Stagehand does not know the verb: ' + rest)
             if time.time() - t0 > timeout:
@@ -139,6 +224,17 @@ class Ctl:
 
 # --- the connection (discovery or explicit) ------------------------------------------------------------------------------
 
+def check_discovery(d, now=None):
+    """Raise CtlError with what to tell the user when the discovery file says the agent cannot connect."""
+    now = time.time() if now is None else now
+    if not d.get('running') or (now - float(d.get('stamp') or 0)) > 30:
+        raise CtlError('Stagehand is not running (discovery file %s is stale); start Stagehand in REAPER' % discovery_path())
+    if not d.get('ctl'):
+        raise CtlError('the open project is not saved: Stagehand has no ctl folder for it. Save the project in REAPER first')
+    if d.get('enable') is False:
+        raise CtlError(ACCESS_OFF)
+
+
 class Connection:
     def __init__(self, ctl_dir=None, project=None):
         self.pinned = None
@@ -158,10 +254,7 @@ class Connection:
         if not d:
             raise CtlError('no Stagehand found: start Stagehand in REAPER with a saved project (the Agent tab shows the ctl folder), '
                            'or start this server with --ctl <folder> / --project <file.RPP>')
-        if not d.get('running') or (time.time() - float(d.get('stamp') or 0)) > 30:
-            raise CtlError('Stagehand is not running (discovery file %s is stale); start Stagehand in REAPER' % discovery_path())
-        if not d.get('ctl'):
-            raise CtlError('the open project is not saved: Stagehand has no ctl folder for it. Save the project in REAPER first')
+        check_discovery(d)
         return Ctl(d['ctl']), d
 
     def ctl(self):
@@ -190,7 +283,8 @@ TOOLS = [
         'description': 'Read the live state of the open REAPER session through Stagehand: project (name, path, saved, counts), '
                        'transport (playing, cursor, time selection, view), every module (Navigator active scene and solo / mute '
                        'scenes, Director run and current shot, HUD, Glow, Overview, Recorder, Stems batch and last results), '
-                       'the restore journal counts and the agent switches the user set. Read this first.',
+                       'the restore journal counts and the agent switches the user set (Agent access, Allow changes, Allow '
+                       'renders; all off until the user turns them on in the Agent tab). Read this first.',
         'inputSchema': _obj({}),
     },
     {
@@ -226,7 +320,8 @@ TOOLS = [
                        'action "get" reads one key with its type, range, default and overrides; "list" reads every key under a '
                        'prefix (empty = all); "set" writes a value (text: numbers, on/off, an enum word, a path, JSON for lists) '
                        'into the project layer (default) or the global file; "reset" removes an override. Values outside the '
-                       "schema's range are refused with the reason. Confirm a set or reset with the user first.",
+                       "schema's range are refused with the reason. The agent switches (agent.*) can be read but never set or "
+                       'reset: they belong to the user (Agent tab). Confirm a set or reset with the user first.',
         'inputSchema': _obj({
             'action': {'type': 'string', 'enum': ['get', 'list', 'set', 'reset']},
             'key': {'type': 'string', 'description': 'dotted key, e.g. director.timing.lead_s (for list: a prefix or empty)'},
@@ -312,7 +407,8 @@ TOOLS = [
         'name': 'stagehand_raw',
         'description': 'Send one raw control-protocol line and wait for a token (escape hatch for verbs without a tool, e.g. '
                        '"overview rect" -> RECT, "rect" -> RECT, "goto 12.5" -> GOTO, "shots json" -> SHOTS). Returns the token '
-                       'line and the JSON reply when the verb wrote one. Use the typed tools when one exists.',
+                       'line and the JSON reply when the verb wrote one. Use the typed tools when one exists. Never renders '
+                       '("stems render" is refused here: use stagehand_stems_render) and never touches the agent switches.',
         'inputSchema': _obj({
             'line': {'type': 'string'}, 'token': {'type': 'string', 'description': 'the reply token to wait for'},
             'timeout_s': {'type': 'number'},
@@ -356,6 +452,16 @@ class Server:
             except CtlError as e:
                 out['error'] = str(e)
             return out
+        if name == 'stagehand_raw':   # checked before anything reaches Stagehand
+            line = (args.get('line') or '').strip()
+            if not line or not (args.get('token') or '').strip():
+                raise CtlError('raw needs line and token')
+            why = raw_refusal(line)
+            if why:
+                raise CtlError('raw refused: ' + why)
+        if name == 'stagehand_stems_render' and not args.get('stop') and args.get('confirm') is not True:
+            raise CtlError('stems_render refused: the batch writes files and takes time. Ask the user in the conversation '
+                           '(which stems, where they land, the format) and call again with confirm=true after a clear yes.')
         ctl = c.ctl()
         if name == 'stagehand_status':
             return ctl.json('state', 'STATE')
@@ -450,16 +556,11 @@ class Server:
             if args.get('stop'):
                 tok, kv, rest, _ = ctl.ask('stems stop', 'STEMS_STOP')
                 return {'token': tok, 'result': rest or kv}
-            if args.get('confirm') is not True:
-                raise CtlError('stems_render refused: the batch writes files and takes time. Ask the user in the conversation '
-                               '(which stems, where they land, the format) and call again with confirm=true after a clear yes.')
-            tok, kv, rest, _ = ctl.ask('stems render', 'STEMS_START', timeout=30)
+            tok, kv, rest, _ = ctl.ask('stems render', 'STEMS_START', timeout=30)   # confirm=true checked above
             return {'token': tok, 'started': kv, 'hint': 'poll stagehand_status modules.stems.batch_active, then stagehand_results'}
         if name == 'stagehand_raw':
             line = (args.get('line') or '').strip()
             token = (args.get('token') or '').strip()
-            if not line or not token:
-                raise CtlError('raw needs line and token')
             tok, kv, rest, data = ctl.ask(line, token, timeout=float(args.get('timeout_s') or DEFAULT_TIMEOUT))
             return {'token': tok, 'kv': kv, 'text': rest, 'reply': data}
         raise CtlError('unknown tool ' + name)
@@ -480,7 +581,9 @@ class Server:
                 'instructions': 'Stagehand for REAPER. Read stagehand_status first. Never save the project. Confirm with the user '
                                 'before anything that changes the session (jumps are fine; solo / mute, runs, config set, renders '
                                 'are not) and pass confirm=true to stagehand_stems_render only after a clear yes. Every change '
-                                'is journaled by Stagehand and restored like the user\'s own (stagehand_scene restore).',
+                                'is journaled by Stagehand and restored like the user\'s own (stagehand_scene restore). The user\'s '
+                                'switches in Stagehand\'s Agent tab (Agent access, Allow changes, Allow renders) are off until '
+                                'they turn them on; when a call is refused by one, ask the user to turn it on, never work around it.',
             })
         if method == 'notifications/initialized' or (method or '').startswith('notifications/'):
             return None
@@ -537,11 +640,110 @@ def serve(conn):
                 out.flush()
 
 
+# --- the offline checks (no Stagehand needed) ------------------------------------------------------------------------------------
+
+class _NoStagehand:
+    """A connection that turns any attempt to reach Stagehand into a failure the checks can see."""
+    pinned = None
+
+    def resolve(self):
+        raise AssertionError('reached Stagehand')
+
+    def ctl(self):
+        raise AssertionError('reached Stagehand')
+
+
+def offline_checks(log=None):
+    """The checks that need no running Stagehand (--check, and the start of --selftest). Returns the failures."""
+    failures = []
+
+    def expect(name, cond, detail=''):
+        if log:
+            log(('PASS ' if cond else 'FAIL ') + name + ('' if cond else ' ' + str(detail)))
+        if not cond:
+            failures.append(name + (' (%s)' % (detail,) if detail else ''))
+        return cond
+
+    # the token parser: quoted values (whitespace, quotes, escaped backslashes), bare Windows paths, the rest text
+    cases = [
+        ('12.5000 STEMS_DONE dir="/Volumes/Audio/My Session/Render/stems" n=4 ok=4', 'STEMS_DONE',
+         {'dir': '/Volumes/Audio/My Session/Render/stems', 'n': '4', 'ok': '4'}, ''),
+        (r'3.1000 STEMS_DONE dir=D:\Audio\Render\stems n=2', 'STEMS_DONE', {'dir': r'D:\Audio\Render\stems', 'n': '2'}, ''),
+        (r'3.2000 STEMS_DONE dir="D:\\Audio\\My Session\\Render" name="say \"hi\""', 'STEMS_DONE',
+         {'dir': r'D:\Audio\My Session\Render', 'name': 'say "hi"'}, ''),
+        ('1.0000 CONFIG bytes=420 file=reply_1.json n=1', 'CONFIG', {'bytes': '420', 'file': 'reply_1.json', 'n': '1'}, ''),
+        ('2.0000 ERROR nav refused: changes are off (turn on Allow changes in the Agent tab)', 'ERROR', {},
+         'nav refused: changes are off (turn on Allow changes in the Agent tab)'),
+        ('4.0000 LAYOUT restored 3', 'LAYOUT', {}, 'restored 3'),
+        ('6.0000 GOTO pos=6.5 then a=b', 'GOTO', {'pos': '6.5'}, 'then a=b'),
+        ('7.0000 VID h= w=480', 'VID', {'h': '', 'w': '480'}, ''),
+        ('garbage', None, {}, ''),
+    ]
+    for line, tok, kv, rest in cases:
+        got = parse_token_line(line)
+        expect('parse: ' + line[:60], got == (tok, kv, rest), got)
+
+    # the raw line guard: never a render, never the user's switches, one line only
+    for line in ('stems render', '  STEMS   Render  ', 'stems\trender', AGENT_MARK + ' stems render', 'Stems render_now',
+                 'ping\nstems render', 'config set agent.enable on', 'CONFIG  Reset  Agent.allow_render global',
+                 'config set agent on'):
+        expect('raw guard refuses %r' % line, raw_refusal(line) is not None)
+    for line in ('ping', 'stems stop', 'overview rect', 'goto 12.5', 'config get agent.enable', 'config list agent',
+                 'config set director.timing.lead_s 0.5'):
+        expect('raw guard passes %r' % line, raw_refusal(line) is None, raw_refusal(line))
+
+    # refused before anything reaches Stagehand
+    server = Server(_NoStagehand())
+    for name, args, want in (('stagehand_raw', {'line': 'stems  RENDER', 'token': 'STEMS_START'}, 'stagehand_stems_render'),
+                             ('stagehand_raw', {'line': 'config set agent.allow_render on', 'token': 'CONFIG'}, 'Agent tab'),
+                             ('stagehand_stems_render', {}, 'confirm=true')):
+        r = server.handle({'jsonrpc': '2.0', 'id': 1, 'method': 'tools/call', 'params': {'name': name, 'arguments': args}})
+        res = r.get('result') or {}
+        text = (res.get('content') or [{}])[0].get('text', '')
+        expect('%s %s refused without reaching Stagehand' % (name, json.dumps(args)),
+               res.get('isError') is True and want in text and 'reached Stagehand' not in text, text)
+
+    # what the user is told when a switch is off
+    try:
+        check_discovery({'running': True, 'stamp': time.time(), 'ctl': '/x', 'enable': False})
+        expect('discovery: access off is an error', False)
+    except CtlError as e:
+        expect('discovery: access off tells the user to turn on Agent access in the Agent tab',
+               'Agent access' in str(e) and 'Agent tab' in str(e), e)
+    try:
+        check_discovery({'running': True, 'stamp': time.time(), 'ctl': '/x', 'enable': True})
+        expect('discovery: access on connects', True)
+    except CtlError as e:
+        expect('discovery: access on connects', False, e)
+    for msg, want in (('hello refused: agent access is off (turn on Agent access in the Agent tab)', '"Agent access"'),
+                      ('nav refused: changes are off (Agent tab, Allow changes)', '"Allow changes"'),
+                      ('stems refused: renders are off (turn on Allow renders in the Agent tab)', '"Allow renders"')):
+        expect('hint: %s' % msg[:40], want in with_hint(msg) and 'do not work around it' in with_hint(msg), with_hint(msg))
+    expect('hint: other errors unchanged', with_hint('no scene "x"') == 'no scene "x"')
+
+    # every line goes out marked as an agent's, once
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        c = Ctl(d)
+        sent = []
+        for line in ('ping', AGENT_MARK + ' state', '  census '):
+            c.send(line)
+            with open(c.cmd_path, encoding='utf-8') as f:
+                sent.append(f.read())
+        expect('marker: every line marked once', sent == [AGENT_MARK + ' ping\n', AGENT_MARK + ' state\n', AGENT_MARK + ' census\n'], sent)
+
+    expect('version from the package header', re.match(r'^\d+\.\d+', SERVER_VERSION) is not None, SERVER_VERSION)
+    return failures
+
+
 # --- the self-test (the test companion) ------------------------------------------------------------------------------------------
 
 def selftest(conn, out_path, log):
     server = Server(conn)
-    v = {'ok': False, 'tools': len(TOOLS), 'calls': 0, 'failures': [], 'initialized': False}
+    v = {'ok': False, 'tools': len(TOOLS), 'calls': 0, 'failures': [], 'initialized': False, 'version': SERVER_VERSION}
+    off = offline_checks(log)
+    v['offline_ok'], v['offline_failures'] = not off, off
+    v['failures'].extend('offline: ' + f for f in off)
     rid = [0]
 
     def rpc(method, params=None):
@@ -618,6 +820,20 @@ def selftest(conn, out_path, log):
     expect('config list agent', isinstance(cl, dict) and cl.get('n') == 4, cl and cl.get('n'))
     raw, _ = tool('stagehand_raw', {'line': 'ping', 'token': 'PONG'})
     v['raw_ok'] = expect('raw ping', isinstance(raw, dict) and raw.get('token') == 'PONG' and 'version' in raw.get('kv', {}), raw)
+    # the raw tool never renders: refused here, nothing written to Stagehand (its state file does not grow)
+    live, _ = server.conn.resolve()
+    size0 = live.state_size()
+    _, text = tool('stagehand_raw', {'line': 'Stems   RENDER', 'token': 'STEMS_START'})
+    time.sleep(0.5)
+    v['raw_render_refused'] = expect('raw stems render refused without reaching Stagehand',
+                                     'stagehand_stems_render' in (text or '') and live.state_size() == size0, (text, size0, live.state_size()))
+    # the switches belong to the user: Stagehand refuses set / reset of agent.* through the typed tool, reads still work
+    _, set_text = tool('stagehand_config', {'action': 'set', 'key': 'agent.enable', 'value': 'off'})
+    _, reset_text = tool('stagehand_config', {'action': 'reset', 'key': 'agent.allow_render', 'scope': 'global'})
+    ag, _ = tool('stagehand_config', {'action': 'get', 'key': 'agent.enable'})
+    v['agent_keys_refused'] = expect('agent switches refused through stagehand_config',
+                                     'belong to the user' in (set_text or '') and 'belong to the user' in (reset_text or '')
+                                     and isinstance(ag, dict) and ag.get('entry', {}).get('value') is True, (set_text, reset_text, ag))
     r = rpc('tools/call', {'name': 'stagehand_nonsense', 'arguments': {}})
     v['unknown_tool_error'] = expect('unknown tool is a JSON-RPC error', 'error' in r, r)
     r = rpc('no/such/method')
@@ -652,14 +868,19 @@ def main():
     ap.add_argument('--project', help='the project file (.RPP); its Render/stagehand_ctl folder is used')
     ap.add_argument('--selftest', action='store_true', help='run the protocol in-process against a live Stagehand and write a verdict')
     ap.add_argument('--out', help='--selftest: the verdict JSON path')
+    ap.add_argument('--check', action='store_true', help='run the offline checks (no Stagehand needed); exit 1 on a failure')
     args = ap.parse_args()
+
+    def log(s):
+        sys.stderr.write(s + '\n')
+        sys.stderr.flush()
+    if args.check:
+        failures = offline_checks(log)
+        log('offline checks (server %s): %s' % (SERVER_VERSION, 'all pass' if not failures else '%d failed' % len(failures)))
+        sys.exit(1 if failures else 0)
     conn = Connection(ctl_dir=args.ctl, project=args.project)
     if args.selftest:
         out = args.out or 'agent_check.json'
-
-        def log(s):
-            sys.stderr.write(s + '\n')
-            sys.stderr.flush()
         try:
             sys.exit(selftest(conn, out, log))
         except CtlError as e:

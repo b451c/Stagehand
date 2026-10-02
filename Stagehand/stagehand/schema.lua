@@ -189,7 +189,7 @@ M.keys = {
   e('glow.debug.log', 'bool'),
   e('glow.persist.scope', 'enum', { values = ENUM_SCOPE }),
 
-  -- overview (M5) --------------------------------------------------------------------------------------------------
+  -- overview -------------------------------------------------------------------------------------------------------
   e('overview.track_px', 'int', { min = 20, max = 120, unit = 'px', group = 'overview.layout' }),
   e('overview.env_lane_px', 'int', { min = 16, max = 80, unit = 'px', group = 'overview.layout' }),
   e('overview.env_min_points', 'int', { min = 1, max = 50, group = 'overview.layout' }),
@@ -209,7 +209,7 @@ M.keys = {
   e('overview.output.half_copy', 'bool'),
   e('overview.output.dpi_mode', 'enum', { values = { 'auto', 'logical', 'native' } }),
 
-  -- recorder (M5) --------------------------------------------------------------------------------------------------
+  -- recorder -------------------------------------------------------------------------------------------------------
   e('recorder.ctl.dir', 'path'),
   e('recorder.ctl.poll_frames', 'int', { min = 1, max = 10, unit = 'frames' }),
   e('recorder.arm.cursor_s', 'num', { min = 0, max = 36000, unit = 's' }),
@@ -236,7 +236,7 @@ M.keys = {
   e('recorder.export.dir', 'path'),
   e('recorder.export.time_format', 'enum', { values = { 'seconds', 'timecode', 'min_sec' } }),
 
-  -- stems (M6) -----------------------------------------------------------------------------------------------------
+  -- stems ----------------------------------------------------------------------------------------------------------
   e('stems.render.format', 'enum', { values = { 'wav16', 'wav24', 'wav32f', 'flac', 'mp3', 'project' } }),
   e('stems.render.srate', 'int', { min = 0, max = 384000, unit = 'Hz' }),
   e('stems.render.channels', 'int', { min = 1, max = 64 }),
@@ -262,7 +262,7 @@ M.keys = {
   e('stems.export.results', 'enum', { values = { 'csv', 'md', 'both', 'none' }, group = 'stems.run' }),
   e('stems.persist.scope', 'enum', { values = ENUM_SCOPE, group = 'stems.general' }),
 
-  -- agent (M7) -----------------------------------------------------------------------------------------------------
+  -- agent ----------------------------------------------------------------------------------------------------------
   e('agent.enable', 'bool', { group = 'agent.access' }),
   e('agent.allow_changes', 'bool', { group = 'agent.access' }),
   e('agent.allow_render', 'bool', { group = 'agent.access' }),

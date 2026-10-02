@@ -1,4 +1,4 @@
--- ui/theme.lua - the design tokens (docs/architecture.md section 5) and the ImGui style they produce.
+-- ui/theme.lua - the design tokens (spacing, type, colour, motion) and the ImGui style they produce.
 --
 -- The only file with raw numbers for spacing, type and colour. Colours are 0xRRGGBB; rgba(c, a) turns them
 -- into the 0xRRGGBBAA ints ReaImGui wants. detect(mode) picks the dark or light palette from the REAPER theme's

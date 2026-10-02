@@ -113,7 +113,7 @@ function ST.b2drag(T)
   local ruler = reaper.JS_Window_FindChildByID(main, 1005)
   local al, at, ar, ab = js.child_rect(arrange)   -- y down on macOS too
   local rl, rt, rr, rb = js.child_rect(ruler)
-  local ml, mt, mr, mb = js.rect(main)
+  local ml, mt, mr, mb = js.screen_rect(main)   -- y down like the child rects (failures X7)
   local v0, v1 = view.get()
   local pps = (ar - al) / (v1 - v0)
   local x = math.floor(al + (r_t1 - v0) * pps + 0.5)
@@ -204,6 +204,15 @@ function ST.run(T)
   T.fact('sabotage', T.sabotage == '' and 'none' or T.sabotage)
   T.fact('js_composite', tostring(js.caps.composite))
   T.fact('js_version', tostring(js.caps.js_version))
+  -- the config listener's key test: a sub-key of a watched key or a group above it counts, a look-alike prefix not
+  local G = app.by_name['glow']
+  if G and G.watches then
+    T.check('listener: a navigator.families sub-key reconfigures', G.watches('navigator.families.3.name'), true)
+    T.check('listener: a navigator.marker_classes sub-key reconfigures', G.watches('navigator.marker_classes.1'), true)
+    T.check('listener: the navigator group reconfigures', G.watches('navigator'), true)
+    T.check('listener: a glow key reconfigures', G.watches('glow.spark.alpha'), true)
+    T.check('listener: look-alike keys do not', G.watches('navigator.families_x') or G.watches('glowing') or G.watches('navigator.search'), false)
+  end
   if not O.available() then
     T.ok('glow needs js_ReaScriptAPI (composite)', false, 'not available on this machine')
     return
@@ -392,7 +401,7 @@ function ST.run(T)
   E.reconfigure()
 
   -- 5. performance guard: an impossible budget degrades in steps, a sane one recovers ---------------------------------------
-  set('perf.budget_ms', 0.1); set('perf.over_frames', 5); set('perf.recover_frames', 30)   -- the smallest values the schema allows (an out-of-range value is dropped by config, verified in M4)
+  set('perf.budget_ms', 0.1); set('perf.over_frames', 5); set('perf.recover_frames', 30)   -- the smallest values the schema allows (an out-of-range value is dropped by config, verified by the settings self-test)
   E.reconfigure()
   E.perf_reset()
   E.perf.level = 0

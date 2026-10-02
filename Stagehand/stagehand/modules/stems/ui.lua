@@ -101,17 +101,15 @@ local function result_of(s)
   return nil
 end
 
+-- the hint a silent result carries: the usual cause is media that were offline during the render (failure note X6)
+local function silent_hint()
+  return string.format(t('stems.res.silent_tip'), string.format('%.0f', tonumber(cfg('results.silent_below_db')) or -90))
+end
+
 -- actions --------------------------------------------------------------------------------------------------------------------------
 
 local function add_many(list, what)
-  local n = 0
-  for _, s in ipairs(list) do
-    MD.stems[#MD.stems + 1] = s
-    s.name = MD.unique_name(s.name)
-    n = n + 1
-  end
-  -- unique_name above compared against the list as it grew; fix names that were unique before their own insert
-  MD.save()
+  local n = MD.add_many(list)
   say(string.format(t('stems.msg.added'), n, what))
   S.hi = #MD.stems
   return n
@@ -342,14 +340,13 @@ local function draw_matrix_modal()
   ImGui.SetNextWindowSize(ctx, 720, 640, ImGui.Cond_Appearing)
   if S.win_x then
     -- centred on the main window but kept inside the monitor's work area (a 460 px window at a screen edge would
-    -- otherwise push a third of the matrix off screen; seen in the demo tour)
+    -- otherwise push a third of the matrix off screen; seen in the demo tour). The window position is ImGui's (y
+    -- down, Quartz on macOS): the work area is looked up and answered in the same system (failures X7)
     local cx, cy = S.win_x + S.win_w / 2, S.win_y + S.win_h / 2
     local x, y = cx - 360, cy - 320
-    if reaper.my_getViewport then
-      local l, t, r, b = reaper.my_getViewport(0, 0, 0, 0, math.floor(cx), math.floor(cy), math.floor(cx) + 1, math.floor(cy) + 1, true)
-      if l and r and r - l > 720 then x = math.max(l + 8, math.min(x, r - 728)) end
-      if t and b and b - t > 640 then y = math.max(t + 8, math.min(y, b - 648)) end
-    end
+    local l, t, r, b = require('platform.js').viewport_quartz(cx, cy, true)
+    if l and r and r - l > 720 then x = math.max(l + 8, math.min(x, r - 728)) end
+    if t and b and b - t > 640 then y = math.max(t + 8, math.min(y, b - 648)) end
     ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Appearing)
   end
   local visible, open = ImGui.BeginPopupModal(ctx, t('stems.mx.title') .. MATRIX_ID, true, ImGui.WindowFlags_NoCollapse)
@@ -644,7 +641,9 @@ local function draw_row(i, s, rh)
     ImGui.DrawList_AddCircleFilled(dl, bx - GAP - 8, y0 + rh / 2, 4, theme.rgba(status_color(st)), 12)
     ImGui.SetCursorScreenPos(ctx, bx - GAP - 16, y0)
     ImGui.Dummy(ctx, 16, rh)
-    widgets.tooltip(ctx, string.format(t('stems.tip.result'), st, res.peak_db and string.format('%.1f', res.peak_db) or '-', res.lufs_i and string.format('%.1f', res.lufs_i) or '-', res.file or ''))
+    local tip = string.format(t('stems.tip.result'), st, res.peak_db and string.format('%.1f', res.peak_db) or '-', res.lufs_i and string.format('%.1f', res.lufs_i) or '-', res.file or '')
+    if st == 'silent' then tip = tip .. '\n' .. silent_hint() end
+    widgets.tooltip(ctx, tip)
   end
   local summary = MD.summary(s)
   local sw = 0
@@ -801,8 +800,8 @@ local function draw_preflight_panel()
       ImGui.TextColored(ctx, theme.col('muted'), t('stems.pf.none'))
       theme.pop_font(ImGui, ctx)
     end
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_results_panel()
@@ -849,11 +848,14 @@ local function draw_results_panel()
       row_text(dl, ix + 22, y, label, st == 'error' and 'danger' or 'text', right - ix - 26, 'small', rh)
       ImGui.SetCursorScreenPos(ctx, ix, y)
       ImGui.Dummy(ctx, iw, rh)
-      widgets.tooltip(ctx, string.format('%s\n%s', row.file or '', row.error or ''))
+      local tip = row.file or ''
+      if row.error then tip = tip .. '\n' .. row.error end
+      if st == 'silent' then tip = tip .. '\n' .. silent_hint() end
+      widgets.tooltip(ctx, tip)
       y = y + rh
     end
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_list()
@@ -887,8 +889,8 @@ local function draw_list()
       draw_row_menu()
       ImGui.EndPopup(ctx)
     end
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
   if S.show_preflight then draw_preflight_panel() end
   if S.show_results and E.results then draw_results_panel() end
 end

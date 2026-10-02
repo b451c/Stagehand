@@ -1,6 +1,7 @@
 -- modules/recorder/ui.lua - the Recorder tab: header with the armed / flash badge, the controls (Arm, Play,
 -- Stop, Export), the checklist with fixes, the layout-at-start row, the protocol panel (ctl folder, the
--- companion command, the last tokens) and the layout diary. Drawing only; init.lua and layout.lua act.
+-- companion command, the last tokens) and the footer. The layout diary has no panel here: layout.lua writes it to
+-- layout.txt in the ctl folder and to the log. Drawing only; init.lua and layout.lua act.
 -- Lua 5.4; no globals.
 
 local theme = require('ui.theme')
@@ -258,8 +259,8 @@ local function draw_checklist()
       y = y + rh
     end
     next_line(x0, y)
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_protocol()
@@ -291,8 +292,8 @@ local function draw_protocol()
       y = y + rh
     end
     next_line(x0, y)
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_footer()

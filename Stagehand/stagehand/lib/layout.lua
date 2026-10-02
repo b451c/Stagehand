@@ -2,7 +2,7 @@
 --
 -- dump() -> { tracks = { [guid] = {...} }, items = { [guid] = { mute } }, envs = { [guid] = { name, vis } },
 -- transport = { repeat, master_vis, master_fx }, toggles = { cont_scroll, mixer, video }, sends = { [guid#i] =
--- { name, mute } }, render = { [RENDER_*] = value } (the settings the Stems run writes, M6) }. diff(a, b) -> list of "path: before -> after" strings
+-- { name, mute } }, render = { [RENDER_*] = value } (the settings the Stems run writes) }. diff(a, b) -> list of "path: before -> after" strings
 -- (empty when the two dumps agree). Selection, the edit cursor, the time selection, the loop range (linked to
 -- the time selection by REAPER's default option), the arrange view and the scroll position are not part of
 -- the dump: a jump sets them on purpose; the Director journals the view and the scroll it changed and the

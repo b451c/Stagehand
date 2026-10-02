@@ -1,7 +1,7 @@
 -- modules/stems/init.lua - the Stems module: stem definitions in bulk from what the Navigator knows
 -- (families, top folders, the selection, scenes, the project's solo / mute state), a matrix editor for the
 -- exceptions, stem-set presets, render settings owned by Stagehand, a sequential renderer with a pre-flight
--- checklist and a results page. Module contract (docs/architecture.md section 3): init, tick, draw, selftest,
+-- checklist and a results page. Module contract (app.register): init, tick, draw, selftest,
 -- restore, shutdown. The other modules are never required: the Navigator's families come from lib/families,
 -- scenes from lib/regions; commands stems_render / stems_stop and the ctl verb "stems ..." serve launchers and
 -- the companion checker (tools/stems_check.py). Lua 5.4; no globals.

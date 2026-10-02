@@ -6,7 +6,9 @@
 -- one stem through GetSetProjectInfo; targets() asks REAPER for the file names it would write (RENDER_TARGETS,
 -- read-only) so the pre-flight knows the exact paths, and the stats() helper reads REAPER's render statistics
 -- only when the preference that stores them is on (reading them while it is off raises a Yes/No dialog:
--- (failure note T1). Facts verified on both test machines on 2026-09-07 (a render probe):
+-- (failure note T1); keep_media_online() turns the offline-when-inactive preference off for a batch and brings
+-- offline sources online (failure note X6), restore_offline() puts the preference back. Facts verified on both
+-- test machines on 2026-09-07 (a render probe):
 -- 42230 renders synchronously from a script, a relative RENDER_FILE resolves against the project folder, the
 -- "evaw" default depends on the machine's preferences (so the WAV bytes are always explicit), RENDER_ADDTOPROJ &2
 -- (skip silent) and an empty range raise modal dialogs and are never used. Lua 5.4; no globals.
@@ -240,6 +242,79 @@ end
 function R.restore_stats(prev)
   if prev == nil or not R.can_enable_stats() then return end
   reaper.SNM_SetIntConfigVar('renderclosewhendone', prev)
+end
+
+-- media offline while REAPER is not the active app ---------------------------------------------------------------------------
+-- The preference "Set media items offline when application is not active" (offlineinact; REAPER reads a missing key
+-- as 1) closes every source while another app is in front, and a batch started then (an agent from a terminal, a
+-- user who switched away) renders silence (failure note X6: 8 of 208 sources online, peak -144). For a batch the
+-- preference goes to 0 and the offline sources are brought online, then the preference is put back like the render
+-- statistics one.
+
+-- the preference's value (0 = off), nil when it cannot be read
+function R.offline_inactive()
+  if not reaper.get_config_var_string then return nil end
+  local ok, v = reaper.get_config_var_string('offlineinact')
+  local n = ok and tonumber(v) or nil
+  if not n then return nil end
+  return math.floor(n)
+end
+
+-- the sources of the active takes (the ones a render plays)
+local function active_sources()
+  local out = {}
+  for i = 0, reaper.CountMediaItems(0) - 1 do
+    local take = reaper.GetActiveTake(reaper.GetMediaItem(0, i))
+    local src = take and reaper.GetMediaItemTake_Source(take)
+    if src then out[#out + 1] = src end
+  end
+  return out
+end
+
+-- { online, total } over the active takes' sources; nil without CF_GetMediaSourceOnline (SWS)
+function R.media_online()
+  if not reaper.CF_GetMediaSourceOnline then return nil end
+  local online, total = 0, 0
+  for _, src in ipairs(active_sources()) do
+    total = total + 1
+    if reaper.CF_GetMediaSourceOnline(src) then online = online + 1 end
+  end
+  return { online = online, total = total }
+end
+
+function R.can_keep_online()
+  return reaper.SNM_SetIntConfigVar ~= nil and reaper.CF_SetMediaSourceOnline ~= nil and reaper.CF_GetMediaSourceOnline ~= nil
+end
+
+-- for a batch (SWS): the preference to 0 when it is not 0, every offline source online. Returns the previous
+-- preference value (nil when it was 0, unreadable or not switched) and the number of sources brought online.
+-- The sources are never set back offline at the end: with the preference on REAPER does that itself on its next
+-- deactivation, and with the preference off they were offline by the user's hand - a stem rendered from an offline
+-- source is silence, which is never what a stem wants.
+function R.keep_media_online()
+  if not R.can_keep_online() then return nil, 0 end
+  local cur = R.offline_inactive()
+  local prev = nil
+  if cur ~= nil and cur ~= 0 then
+    reaper.SNM_SetIntConfigVar('offlineinact', 0)
+    prev = cur
+  end
+  local brought, still, total = 0, 0, 0
+  for _, src in ipairs(active_sources()) do
+    total = total + 1
+    if not reaper.CF_GetMediaSourceOnline(src) then
+      reaper.CF_SetMediaSourceOnline(src, true)
+      if reaper.CF_GetMediaSourceOnline(src) then brought = brought + 1 else still = still + 1 end
+    end
+  end
+  log.info('stems: media kept online for the batch (offlineinact %s -> %s, %d of %d sources brought online, %d still offline)',
+    tostring(cur), prev ~= nil and '0' or tostring(cur), brought, total, still)
+  return prev, brought
+end
+
+function R.restore_offline(prev)
+  if prev == nil or not reaper.SNM_SetIntConfigVar then return end
+  reaper.SNM_SetIntConfigVar('offlineinact', prev)
 end
 
 -- parse "FILE:x;LENGTH:0:06.000;PEAK:-3.469763;LUFSMMAX:..;LUFSSMAX:..;LUFSI:..;LRA:.." (a silent file has

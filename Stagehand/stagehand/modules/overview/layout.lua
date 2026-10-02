@@ -227,13 +227,14 @@ function L.content_height()
   return math.floor(h)
 end
 
--- everything the companion and the stitcher need, in screen px (logical, y down) or nil without js_ReaScriptAPI:
+-- everything the companion and the stitcher need, in screen px (logical, y down; Quartz on macOS, what
+-- screencapture -R and the ImGui counter window take) or nil without js_ReaScriptAPI:
 -- { main = {l,t,r,b}, arrange = {l,t,r,b}, client_h, ruler_top (nil when the ruler does not sit right above the
 --   arrange), tcp_left, content_h, scroll = { pos, page, min, max } }
 function L.geometry()
   if not (js.caps and js.caps.window_rects) then return nil, 'no js_ReaScriptAPI' end
   local main = reaper.GetMainHwnd()
-  local ml, mt, mr, mb = js.rect(main)
+  local ml, mt, mr, mb = js.screen_rect(main)   -- y down on every platform and every display (failures X7)
   local arr = js.arrange_hwnd()
   if not arr or not ml then return nil, 'no arrange window' end
   local al, at, ar, ab = js.child_rect(arr)   -- child rects: y down on macOS too (js.child_rect)
@@ -354,6 +355,8 @@ end
 
 -- mode 'guided': the main window hides, a page counter window shows, the user captures each page
 -- mode 'companion': the main window hides while an external driver scrolls through the ctl protocol
+-- fresh = the capture applied the layout itself (it was not active): Done on the last guided page restores it;
+-- Stop / Esc / closing the counter end the capture and leave the layout applied (Restore puts it back)
 function L.start_capture(mode, dir)
   if not (js.caps and js.caps.scroll) then return nil, 'no scrolling (js_ReaScriptAPI missing)' end
   local fresh = not L.active
@@ -362,7 +365,7 @@ function L.start_capture(mode, dir)
   -- the page plan is read a few frames later: after an apply the arrange gets its new size (the mixer gone)
   -- only once REAPER laid the window out, and the scroll range with it
   L.capture = { mode = mode, dir = dir, pages = {}, i = 0, started = reaper.time_precise(), auto_s = tonumber(cfg('guided.auto_s')) or 0, next_at = nil,
-    pending = fresh and 3 or 1 }
+    pending = fresh and 3 or 1, fresh = fresh }
   if app then app.suspend_window(true) end
   trace('CAPTURE start mode=%s dir=%s', mode, tostring(dir))
   return L.capture
@@ -388,7 +391,12 @@ end
 function L.guided_next()
   local c = L.capture
   if not c or c.pending then return false end
-  if c.i >= #c.pages then return L.end_capture('done') end
+  if c.i >= #c.pages then
+    -- Done: the session goes back when this capture applied the layout; a layout the user applied before stays
+    local ended = L.end_capture('done')
+    if c.fresh and L.active then L.restore('guided done') end
+    return ended
+  end
   c.i = c.i + 1
   L.goto_page(c.i)
   if c.auto_s > 0 then c.next_at = reaper.time_precise() + c.auto_s end

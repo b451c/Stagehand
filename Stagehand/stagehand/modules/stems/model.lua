@@ -208,6 +208,19 @@ function MD.add(stem)
   return #MD.stems
 end
 
+-- several stems at once (the bulk builders): each name is made unique against the set BEFORE the stem joins it (a
+-- stem inserted first finds itself and comes out as "Dialogue 2"), one save at the end; returns the number added
+function MD.add_many(list)
+  local n = 0
+  for _, s in ipairs(list or {}) do
+    s.name = MD.unique_name(s.name)
+    MD.stems[#MD.stems + 1] = s
+    n = n + 1
+  end
+  if n > 0 then MD.save() end
+  return n
+end
+
 function MD.remove(k)
   if not MD.stems[k] then return end
   table.remove(MD.stems, k)

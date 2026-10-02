@@ -1,7 +1,8 @@
 # Stagehand for REAPER
 
-Session navigator, showcase director, stems and session overview for REAPER 7 - one ReaScript package (Lua + ReaImGui,
-Windows / macOS / Linux), configurable end to end. A falami.studio tool by Bartosz Sroczynski, MIT licence.
+Session navigator, showcase director, stem delivery and session overview for REAPER 7 - one ReaScript package
+(Lua + ReaImGui, Windows / macOS / Linux), configurable end to end. A falami.studio tool by Bartosz Sroczynski, MIT
+licence.
 
 [![Release](https://img.shields.io/github/v/release/b451c/Stagehand?label=release)](https://github.com/b451c/Stagehand/releases)
 [![ReaPack](https://img.shields.io/badge/ReaPack-index.xml-blue)](https://raw.githubusercontent.com/b451c/Stagehand/main/index.xml)
@@ -26,8 +27,10 @@ Windows / macOS / Linux), configurable end to end. A falami.studio tool by Barto
 - **Configure**: every knob in one Settings tab drawn from a schema, presets, per-project overrides, invalid values
   reported and never silently repaired.
 - **Ask an agent**: an AI agent (Claude and the like) reads the session and drives Stagehand through the bundled MCP
-  server: it can build and edit the shot list, run the Director, change any setting and render stems, gated by three
-  switches you own.
+  server: it can build and edit the shot list, run the Director, change settings and render stems. Three switches in
+  the Agent tab (Agent access, Allow changes, Allow renders) are off until you turn them on; an agent can read them
+  but never change them, the commands that put things back always work, and a render needs your yes in the
+  conversation. The companion tools you start yourself are not affected by the switches.
 
 ![A Director run: the arrange follows the shot, the HUD bar at the bottom](docs/images/stagehand_director_run.gif)
 
@@ -35,15 +38,17 @@ Windows / macOS / Linux), configurable end to end. A falami.studio tool by Barto
 
 1. In REAPER: **Extensions > ReaPack > Import repositories...** and paste
    `https://raw.githubusercontent.com/b451c/Stagehand/main/index.xml`
-2. **Extensions > ReaPack > Browse packages**, search "Stagehand", right-click > Install (ReaImGui is installed as a
-   dependency when missing).
+2. **Extensions > ReaPack > Browse packages**, search "Stagehand", right-click > Install. Install ReaImGui the same
+   way if you do not have it yet ("ReaImGui: ReaScript binding for Dear ImGui", from the ReaTeam Extensions repository
+   that ReaPack ships with); ReaPack does not add it by itself, and Stagehand shows a message when it is missing.
 3. Run **Stagehand** from the action list (or one of the module actions: Navigator, Director, HUD, Glow toggle, Overview,
    Recorder, Stems, Agent, Settings) and give it a shortcut.
 
 Requires REAPER 7.x and ReaImGui. js_ReaScriptAPI (optional) unlocks the glow overlay, the screen layout and the overview
-geometry; SWS (optional) opens links from the About tab. The companions in `tools/` need Python 3 (Pillow and ffmpeg
-optional). Manual install: copy the `Stagehand` folder into `<REAPER resource path>/Scripts/` and load `Stagehand.lua`
-through Actions > Show action list > New action > Load ReaScript.
+geometry; SWS (optional) opens links and folders, and lets a stems batch switch REAPER's render statistics and offline
+media preferences for the batch. The companions in `tools/` need Python 3 (Pillow and ffmpeg optional). Manual
+install: copy the `Stagehand` folder into `<REAPER resource path>/Scripts/` and load `Stagehand.lua` through Actions >
+Show action list > New action > Load ReaScript.
 
 ## Documentation
 

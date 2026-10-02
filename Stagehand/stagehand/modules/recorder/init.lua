@@ -3,7 +3,7 @@
 -- layout at start, the hud file), the sync tokens mirrored from the HUD's flash sequencer into the state file,
 -- the recording checklist, the screen layout at start and the shot-list export. Everything goes through
 -- events and commands: the Director, HUD and Glow modules are never required. Module contract
--- (docs/architecture.md section 3): init, tick, draw, selftest, restore, shutdown. Lua 5.4; no globals.
+-- (app.register): init, tick, draw, selftest, restore, shutdown. Lua 5.4; no globals.
 
 local log = require('lib.log')
 local config = require('config')
@@ -118,6 +118,7 @@ local function register_verbs()
     local st = RL.restore('ctl')
     ctl.write('LAYOUT', 'restored ' .. st.restored)
   end)
+  -- vid x y w h: screen px, y down like the RECT reply (Quartz on macOS); the journal keeps the native rect
   ctl.on('vid', function(args)
     local x, y, w, h = args:match('^(%-?%d+)%s+(%-?%d+)%s+(%d+)%s+(%d+)')
     local hw = js.find_video_window()
@@ -126,8 +127,8 @@ local function register_verbs()
         local l, tt, r, b = js.rect(hw)
         journal.add({ kind = 'window_rect', key = 'video', was = { l, tt, r - l, b - tt }, owner = 'recorder' })
       end
-      js.set_rect(hw, tonumber(x), tonumber(y), tonumber(w), tonumber(h))
-      local l, tt, r, b = js.rect(hw)
+      js.place_rect(hw, tonumber(x), tonumber(y), tonumber(w), tonumber(h))
+      local l, tt, r, b = js.screen_rect(hw)
       ctl.note('VID set %s,%s %sx%s -> now %d,%d %dx%d', x, y, w, h, l, tt, r - l, b - tt)
       ctl.write('VID', { l = l, t = tt, w = r - l, h = b - tt })
     else
@@ -175,7 +176,7 @@ function M.init(app_)
     ctl.write(name, { pos = pos })
   end)
   app.on('shot_changed', function(k, s)
-    ctl.write('SHOT', string.format('k=%d t0=%.3f t1=%.3f name=%s', k, s.t0, s.t1, tostring(s.name)))
+    ctl.write('SHOT', string.format('k=%d t0=%.3f t1=%.3f name=%s', k, s.t0, s.t1, ctl.quote(tostring(s.name))))   -- a name with spaces is quoted
   end)
   app.on('director_active', function(on)
     S.director_active = on == true

@@ -2,8 +2,8 @@
 -- The layout engine (layout.lua) lays the session out through the journal (owner 'overview'), serves the
 -- capture geometry and the page plan, and answers the ctl verb "overview ..." for the companion drivers in
 -- tools/ (overview_capture.py); the tab (ui.lua) offers apply / restore, quick settings, the companion command
--- and a guided mode with a page counter window for any screenshot tool. Module contract (docs/architecture.md
--- section 3): init, tick, draw, draw_extra, selftest, restore, shutdown. Lua 5.4; no globals.
+-- and a guided mode with a page counter window for any screenshot tool. Module contract (app.register):
+-- init, tick, draw, draw_extra, selftest, restore, shutdown. Lua 5.4; no globals.
 
 local log = require('lib.log')
 local journal = require('lib.journal')

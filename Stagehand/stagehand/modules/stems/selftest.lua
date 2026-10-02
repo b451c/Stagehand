@@ -6,7 +6,8 @@
 -- scenario hands over to tools/stems_check.py (started by the harness) which renders a batch through the ctl
 -- protocol, measures every WAV independently (numpy) and writes stems_check.json; the scenario checks its verdict.
 -- Sabotage 'leave_solo' drops the solo entries before the last restore (the negative control: the restore diff
--- must go red). Lua 5.4; no globals.
+-- must go red); sabotage 'no_online' renders the offline-media stem without keeping the media online (the negative
+-- control of failure note X6: the stem must come out silent). Lua 5.4; no globals.
 
 local layout = require('lib.layout')
 local config = require('config')
@@ -65,6 +66,15 @@ local function row_by_name(results, name)
     if r.name == name then return r end
   end
   return nil
+end
+
+-- every active take's source (the ones a render plays)
+local function each_source(fn)
+  for i = 0, reaper.CountMediaItems(0) - 1 do
+    local take = reaper.GetActiveTake(reaper.GetMediaItem(0, i))
+    local src = take and reaper.GetMediaItemTake_Source(take)
+    if src then fn(src) end
+  end
 end
 
 function ST.run(T)
@@ -126,6 +136,26 @@ function ST.run(T)
   reaper.SetMediaTrackInfo_Value(tr0, 'I_SOLO', 0)
   T.check('capture reads the soloed track', n_cap, 1)
   T.check('capture cell is solo in place', cap.cells[reaper.GetTrackGUID(tr0)], 'S')
+  -- bulk add (the menu's "One stem per family"): the names stay the families' on an empty set, a second bulk add of
+  -- the same families numbers the copies; fresh lists each time (add_many renames in place, fam_stems is used below)
+  local fam_names, fam_names_2 = {}, {}
+  for _, s in ipairs(fam_stems) do
+    fam_names[#fam_names + 1] = s.name
+    fam_names_2[#fam_names_2 + 1] = s.name .. ' 2'
+  end
+  local n_bulk = MD.add_many(MD.from_families())
+  local got_names = {}
+  for _, s in ipairs(MD.stems) do got_names[#got_names + 1] = s.name end
+  T.check('bulk add on an empty set: count', n_bulk, #fam_stems)
+  T.check('bulk add on an empty set keeps the family names', table.concat(got_names, '|'), table.concat(fam_names, '|'))
+  local n_bulk2 = MD.add_many(MD.from_families())
+  local got_2 = {}
+  for k = n_bulk + 1, #MD.stems do got_2[#got_2 + 1] = MD.stems[k].name end
+  T.check('second bulk add: count', n_bulk2, #fam_stems)
+  T.check('second bulk add numbers the copies', table.concat(got_2, '|'), table.concat(fam_names_2, '|'))
+  T.ok('second bulk add: "Dialogue 2" next to "Dialogue"', MD.find_by_name('Dialogue') ~= nil and MD.find_by_name('Dialogue 2') ~= nil and MD.find_by_name('Dialogue 3') == nil)
+  MD.clear()
+  T.check('set empty again after the bulk add checks', #MD.stems, 0)
 
   -- 2. the set: Dialogue, Music, Ambience (families), scene 1 as a mix, plus a disabled one ------------------------------------------
   for _, s in ipairs(fam_stems) do
@@ -313,7 +343,53 @@ function ST.run(T)
   T.check('user solo put back after the batch', reaper.GetMediaTrackInfo_Value(tr0, 'I_SOLO'), 2)
   reaper.SetMediaTrackInfo_Value(tr0, 'I_SOLO', 0)
 
-  -- 10. presets: save, clear, load by name ---------------------------------------------------------------------------------------------
+  -- 10. media offline while REAPER is not the active app (failure note X6): the preference on and every source
+  -- offline, as REAPER leaves them with another app in front; one short stem must still have sound (the batch turns
+  -- the preference off, brings the sources online and puts the preference back). Sabotage 'no_online' skips that.
+  if not (R.can_keep_online() and R.offline_inactive() ~= nil) then
+    T.fact('offline_media', 'skipped: SWS (SNM_SetIntConfigVar, CF_Get/SetMediaSourceOnline) or the preference read missing')
+  else
+    local pref0 = R.offline_inactive()
+    T.fact('offline_pref_before', pref0)
+    reaper.SNM_SetIntConfigVar('offlineinact', 1)
+    each_source(function(src) reaper.CF_SetMediaSourceOnline(src, false) end)
+    T.wait(2)
+    local mo0 = R.media_online() or { online = -1, total = -1 }
+    T.fact('offline_media_before', mo0.online .. '/' .. mo0.total)
+    T.ok('offline media: sources offline before the batch', mo0.total > 0 and mo0.online < mo0.total, mo0.online .. '/' .. mo0.total)
+    local pf_off = nil
+    for _, r in ipairs(E.preflight({ [1] = true })) do
+      if r.id == 'offline' then pf_off = r end
+    end
+    T.ok('offline media: pre-flight has the offline row', pf_off ~= nil, pf_off and (pf_off.level .. ' ' .. pf_off.text) or 'none')
+    T.check('offline media: the row is a note with SWS', pf_off and pf_off.level, 'info')
+    if T.sabotage == 'no_online' then E.skip_online = true end
+    local res_before = E.results
+    T.check('offline media: batch started', E.start({ [1] = true }, 'selftest'), true)
+    T.wait_until(function() return E.run and E.run.phase == 'render' end, 200, 'offline media: the stem reaches the render phase')
+    T.check('offline media: preference off while the stem renders', R.offline_inactive(), 0)
+    local mo1 = R.media_online() or { online = -1, total = -2 }
+    T.check('offline media: every source online while the stem renders', mo1.online, mo1.total)
+    wait_batch(T)
+    E.skip_online = false
+    local r1 = E.results ~= res_before and E.results and E.results.rows and E.results.rows[1] or nil
+    T.log(string.format('RESULT offline %s file=%s peak=%s reaper_peak=%s silent=%s brought_online=%s', r1 and r1.name or '-', tostring(r1 and r1.file),
+      tostring(r1 and r1.peak_db), tostring(r1 and r1.reaper_peak_db), tostring(r1 and r1.silent), tostring(E.results and E.results.brought_online)))
+    T.fact('offline_brought_online', tostring(E.results and E.results.brought_online))
+    T.ok('offline media: the stem rendered', r1 ~= nil and r1.ok == true, r1 and tostring(r1.error or r1.file) or 'no result')
+    T.check('offline media: the stem is not silent', r1 and r1.silent, false)
+    local silent_below = tonumber(config.get('stems.results.silent_below_db')) or -90
+    T.ok('offline media: REAPER peak is real', r1 ~= nil and r1.reaper_peak_db ~= nil and r1.reaper_peak_db > silent_below, tostring(r1 and r1.reaper_peak_db))
+    T.check('offline media: preference back to 1 after the batch', R.offline_inactive(), 1)
+    -- the machine as it was: the preference's own value, every source online
+    reaper.SNM_SetIntConfigVar('offlineinact', pref0)
+    each_source(function(src) reaper.CF_SetMediaSourceOnline(src, true) end)
+    local mo2 = R.media_online() or { online = -1, total = -1 }
+    T.fact('offline_media_after', mo2.online .. '/' .. mo2.total)
+    T.check('offline media: preference back to its own value', R.offline_inactive(), pref0)
+  end
+
+  -- 11. presets: save, clear, load by name ---------------------------------------------------------------------------------------------
   local ppath = MD.save_preset('Selftest set')
   T.ok('preset saved', ppath ~= nil and file_exists(ppath), tostring(ppath))
   MD.clear()
@@ -323,7 +399,7 @@ function ST.run(T)
   T.ok('preset loaded: cells', found >= 21, found)
   os.remove(ppath)
 
-  -- 11. the companion (variant) ---------------------------------------------------------------------------------------------------------
+  -- 12. the companion (variant) ---------------------------------------------------------------------------------------------------------
   if companion then
     T.ok('ctl folder available', ctl.available(), tostring(ctl.dir()))
     local go = io.open(T.out_path('companion_go.txt'), 'w')
@@ -350,7 +426,7 @@ function ST.run(T)
     T.wait_until(function() return not E.active end, 600)
   end
 
-  -- 12. restore diff -----------------------------------------------------------------------------------------------------------------------
+  -- 13. restore diff -----------------------------------------------------------------------------------------------------------------------
   MD.clear()
   if T.sabotage == 'leave_solo' then
     -- the negative control: solo one track as the engine would, journaled, then drop the entry and restore
@@ -381,10 +457,7 @@ end
 function ST.post(frames_since_done)
   if frames_since_done == 5 then
     app.set_tab('stems')
-    if #MD.stems == 0 then
-      for _, s in ipairs(MD.from_families()) do MD.stems[#MD.stems + 1] = s end
-      MD.save()
-    end
+    if #MD.stems == 0 then MD.add_many(MD.from_families()) end
     S.show_results = E.results ~= nil
     S.hi = 1
   elseif frames_since_done == 60 then

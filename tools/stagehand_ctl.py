@@ -14,8 +14,15 @@ be used from any script:
 Only the standard library is used.
 """
 import os
+import re
 import sys
 import time
+
+# the reply grammar: "<t> TOKEN" then key=value pairs (lib/ctl.lua M.write / M.quote; the MCP server parses alike)
+_HEAD = re.compile(r'(\S+)\s+(\S+)(?:\s+(.*))?$', re.S)
+_PAIR = re.compile(r'([^\s=]+)=(?:"((?:[^"\\]|\\.)*)"(?=\s|$)|(\S*))')
+_UNESCAPE = re.compile(r'\\([\\"])')
+_SPACE = re.compile(r'\s+')
 
 
 class CtlError(RuntimeError):
@@ -54,22 +61,36 @@ class Ctl:
 
     @staticmethod
     def parse(line):
-        """'<t> TOKEN k=v k2=v2 rest' -> (t, TOKEN, {k: v}, rest_text)."""
-        parts = line.split()
-        if len(parts) < 2:
+        """'<t> TOKEN k=v k2="v 2" rest' -> (t, TOKEN, {k: v}, rest_text).
+
+        The rule lib/ctl.lua writes and the MCP server parses: key=value pairs until the first word that is not one,
+        the rest of the line is free text. A key is [^\\s=]+; a value is either "..." followed by whitespace or the
+        end of the line (inside, only \\\\ and \\" are unescaped) or else the raw word (\\S*, a Windows path keeps its
+        backslashes)."""
+        m = _HEAD.match((line or '').strip())
+        if not m:
             return None, None, {}, ''
         try:
-            t = float(parts[0])
+            t = float(m.group(1))
         except ValueError:
             t = None
-        kv, rest = {}, []
-        for p in parts[2:]:
-            if '=' in p and not rest:
-                k, v = p.split('=', 1)
-                kv[k] = v
+        body = m.group(3) or ''
+        kv, pos = {}, 0
+        while pos < len(body):
+            p = _PAIR.match(body, pos)
+            if not p:
+                break
+            if p.group(2) is not None:
+                kv[p.group(1)] = _UNESCAPE.sub(r'\1', p.group(2))
             else:
-                rest.append(p)
-        return t, parts[1], kv, ' '.join(rest)
+                kv[p.group(1)] = p.group(3)
+            pos = p.end()
+            sp = _SPACE.match(body, pos)
+            if sp:
+                pos = sp.end()
+            elif pos < len(body):
+                break
+        return t, m.group(2), kv, body[pos:].strip()
 
     def find(self, token, since_size=0):
         """The last state line carrying the token, written after byte offset since_size (or None)."""
@@ -175,3 +196,57 @@ def parse_scroll_line(line):
     if not m:
         raise CtlError('cannot parse the SCROLL line: ' + line)
     return [int(v) for v in m.groups()]
+
+
+def quote_value(v):
+    """A value as lib/ctl.lua M.quote writes it: raw unless it holds whitespace or a double quote, then "..." with
+    backslash and double quote escaped (line breaks become a space first)."""
+    s = re.sub(r'[\r\n]+', ' ', str(v))
+    if not re.search(r'[\s"]', s):
+        return s
+    return '"' + s.replace('\\', '\\\\').replace('"', '\\"') + '"'
+
+
+def selftest_parse():
+    """Offline check of Ctl.parse (python3 tools/stagehand_ctl.py --selftest-parse); returns the number of failures."""
+    cases = [
+        ('12.3456 STEMS_DONE failed=0 n=8 ok=8 results="/a b/x.json" silent=0 skipped=0',
+         'STEMS_DONE', {'failed': '0', 'n': '8', 'ok': '8', 'results': '/a b/x.json', 'silent': '0', 'skipped': '0'}, ''),
+        ('1.5 STEMS_DONE n=1 results=D:\\Audio\\Render\\stems\\stems_results.json',
+         'STEMS_DONE', {'n': '1', 'results': 'D:\\Audio\\Render\\stems\\stems_results.json'}, ''),
+        ('1.5 STEMS_DONE n=1 results="D:\\\\Audio Work\\\\Render\\\\stems_results.json" ok=1',
+         'STEMS_DONE', {'n': '1', 'results': 'D:\\Audio Work\\Render\\stems_results.json', 'ok': '1'}, ''),
+        ('2.0 NOTE name="say \\"hi\\" now" k=3', 'NOTE', {'name': 'say "hi" now', 'k': '3'}, ''),
+        ('3.0 SHOT k=1 t0=0.000 t1=11.000 name="Harbor dawn" and free text', 'SHOT',
+         {'k': '1', 't0': '0.000', 't1': '11.000', 'name': 'Harbor dawn'}, 'and free text'),
+        ('3.1 SHOT k=2 name=Foley', 'SHOT', {'k': '2', 'name': 'Foley'}, ''),
+        ('4.0 UNKNOWN overview foo=bar', 'UNKNOWN', {}, 'overview foo=bar'),
+        ('5.0 STEMS_START dir= n=3', 'STEMS_START', {'dir': '', 'n': '3'}, ''),
+        ('6.0 X a="b c', 'X', {'a': '"b'}, 'c'),
+        ('6.1 X a="b"c d=1', 'X', {'a': '"b"c', 'd': '1'}, ''),
+        ('6.2 X path="a\\nb"', 'X', {'path': 'a\\nb'}, ''),
+        ('7.0 PONG', 'PONG', {}, ''),
+        ('7.1 RECT 1 2 3 4 ruler_top nil', 'RECT', {}, '1 2 3 4 ruler_top nil'),
+    ]
+    bad = 0
+    for line, token, kv, rest in cases:
+        t, tok, got, got_rest = Ctl.parse(line)
+        ok = tok == token and got == kv and got_rest == rest and t is not None
+        if not ok:
+            bad += 1
+        print('%-4s %s\n     -> %s %r rest=%r' % ('ok' if ok else 'FAIL', line, tok, got, got_rest))
+    # the writer's rule round-trips through the parser
+    for v in ['/a b/x.json', 'D:\\Audio\\x.json', 'C:\\Program Files\\x "y"\\z.json', 'plain', '', 'tab\there', 'a\\"b']:
+        _, _, got, _ = Ctl.parse('1.0 T v=%s w=1' % quote_value(v))
+        ok = got.get('v') == v and got.get('w') == '1'
+        if not ok:
+            bad += 1
+        print('%-4s round trip %r -> %s -> %r' % ('ok' if ok else 'FAIL', v, quote_value(v), got.get('v')))
+    print('parse self-test: %s' % ('ALL OK' if bad == 0 else '%d FAILED' % bad))
+    return bad
+
+
+if __name__ == '__main__':
+    if '--selftest-parse' in sys.argv[1:]:
+        sys.exit(1 if selftest_parse() else 0)
+    sys.exit('stagehand_ctl.py is a module (from stagehand_ctl import Ctl); --selftest-parse runs the offline parser test')

@@ -105,7 +105,7 @@ local SWITCHES = {
 local function draw_switches()
   for i, sw in ipairs(SWITCHES) do
     if i > 1 then ImGui.SameLine(ctx, 0, theme.space[3]) end
-    local on = config.get(sw.key) ~= false
+    local on = config.get(sw.key) == true   -- off by default; only a true value is on (the gates read it the same way)
     local changed, v = ImGui.Checkbox(ctx, t(sw.label) .. '##' .. sw.key, on)
     if changed then
       app.note('agent switch ' .. sw.key)
@@ -166,8 +166,8 @@ local function draw_install()
       M.say(t('agent.msg.copied_skill'))
     end
     widgets.tooltip(ctx, t('agent.btn.copy_skill.tip'))
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 -- the last commands ------------------------------------------------------------------------------------------------------------------
@@ -208,8 +208,8 @@ local function draw_commands()
       y = y + rh
     end
     next_line(x0, y)
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_footer()

@@ -174,6 +174,9 @@ function ST.run(T)
     local mons = RL.scan_monitors()
     T.ok('monitors found', #mons >= 1, tostring(#mons))
     T.fact('monitors', (function() local p = {} for i, m in ipairs(mons) do p[#p + 1] = string.format('%d:%d,%d %dx%d', i, m.l, m.t, m.w, m.h) end return table.concat(p, ' ') end)())
+    -- failures X7: the layout works y down (Quartz on macOS) and moves windows through js.place_rect
+    T.fact('coords', js.coords_fact())
+    T.fact('monitors_native', (function() local p = {} for i, m in ipairs(mons) do p[#p + 1] = string.format('%d:%d,%d-%d,%d', i, m.native[1], m.native[2], m.native[3], m.native[4]) end return table.concat(p, ' ') end)())
     T.fact('dockers', RL.dockers_text())
     local bottom = RL.docker_index('bottom')
     local check_bottom = nil
@@ -184,6 +187,13 @@ function ST.run(T)
     T.wait(3)
     local l1, t1, r1, b1 = js.rect(main)
     T.ok('main window resized to 900x620 (+-40)', l1 and math.abs((r1 - l1) - 900) <= 40 and math.abs((b1 - t1) - 620) <= 40, string.format('%dx%d (was %dx%d)', (r1 or 0) - (l1 or 0), (b1 or 0) - (t1 or 0), r0 - l0, b0 - t0))
+    local m = RL.last.main
+    local ql, qt, qr, qb = js.screen_rect(main)
+    if m and m.want and ql then
+      T.fact('main_layout', string.format('y-down want=%s now=%d,%d-%d,%d (native now %d,%d-%d,%d)', table.concat(m.want, ','), ql, qt, qr, qb, l1 or 0, t1 or 0, r1 or 0, b1 or 0))
+      T.ok('main window where the layout wanted it, y down (+-40)', math.abs(ql - m.want[1]) <= 40 and math.abs(qt - m.want[2]) <= 40,
+        string.format('now %d,%d want %d,%d', ql, qt, m.want[1], m.want[2]))
+    end
     T.check('video window toggle on', math.max(0, view.toggle_state(50125, 'video')), 1)
     T.wait_until(function() return RL.last.video ~= nil end, 40)
     T.wait(2)

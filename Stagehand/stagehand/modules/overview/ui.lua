@@ -275,8 +275,8 @@ local function draw_summary()
     ImGui.TextColored(ctx, theme.col('muted'), t('ovw.help'))
     ImGui.PopTextWrapPos(ctx)
     theme.pop_font(ImGui, ctx)
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_footer()
@@ -298,7 +298,7 @@ function U.draw_counter(app_)
     if g then
       -- outside the picture: under the main window when the monitor has room, else over the transport strip
       -- at the bottom right (below the arrange, outside the crop)
-      local _, _, _, mb = js.monitor_of(g.main[1], g.main[2], g.main[3], g.main[4], true)
+      local _, _, _, mb = js.monitor_of_quartz(g.main[1], g.main[2], g.main[3], g.main[4], true)   -- y down, like g
       local x, y = g.main[3] - w - 24, g.main[4] - h - 8
       if mb and mb - g.main[4] >= h + 16 then y = g.main[4] + 8 end
       ImGui.SetNextWindowPos(ctx, x, y, ImGui.Cond_Always)
@@ -351,6 +351,7 @@ function U.draw(app_)
   app = app_
   ctx = app.ctx
   S.compact = app.win_h < (config.get('ui.compact_below_px') or theme.compact_below)
+  S.win_x, S.win_y = ImGui.GetWindowPos(ctx)   -- ImGui's own y-down position (the self-test compares js against it)
   if S.msg_frames > 0 then S.msg_frames = S.msg_frames - 1 end
   draw_header()
   draw_controls()

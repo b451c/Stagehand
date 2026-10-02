@@ -160,7 +160,7 @@ local function draw_settings()
     { key = 'caption_lang', label = t('hud.set.caption'), cur = H.cfg.caption_lang or 'primary', options = { { 'primary', t('hud.cap.primary'), t('hud.tip.cap_primary') }, { 'secondary', t('hud.cap.secondary'), t('hud.tip.cap_secondary') } } },
     { key = 'time_format', label = t('hud.set.time'), cur = H.cfg.show_time == false and 'off' or (H.cfg.time_format or 'min_sec'),
       options = { { 'min_sec', t('hud.time.min_sec'), t('hud.tip.time') }, { 'timecode', t('hud.time.timecode'), t('hud.tip.time') }, { 'seconds', t('hud.time.seconds'), t('hud.tip.time') }, { 'off', t('hud.time.off'), t('hud.tip.time') } } },
-    { key = 'progress.style', label = t('hud.set.progress'), cur = (H.cfg.progress and H.cfg.progress.style) or 'bar', options = { { 'bar', t('hud.prog.bar'), t('hud.tip.progress') }, { 'dots', t('hud.prog.dots'), t('hud.tip.progress') }, { 'off', t('hud.prog.off'), t('hud.tip.progress') } } },
+    { key = 'progress.style', label = t('hud.set.progress'), cur = H.cfg.show_progress == false and 'off' or ((H.cfg.progress and H.cfg.progress.style) or 'bar'), options = { { 'bar', t('hud.prog.bar'), t('hud.tip.progress') }, { 'dots', t('hud.prog.dots'), t('hud.tip.progress') }, { 'off', t('hud.prog.off'), t('hud.tip.progress') } } },
   }
   local x, y = x0, y0
   for i, g in ipairs(groups) do
@@ -180,6 +180,10 @@ local function draw_settings()
     if chosen then
       if g.key == 'time_format' then
         if chosen == 'off' then set_setting('show_time', false) else set_setting('show_time', true); set_setting('time_format', chosen) end
+      elseif g.key == 'progress.style' then
+        -- hud.show_progress off reads as 'off' here; a style chosen turns it back on
+        if chosen ~= 'off' and H.cfg.show_progress == false then set_setting('show_progress', true) end
+        set_setting(g.key, chosen)
       else
         set_setting(g.key, chosen)
       end
@@ -275,8 +279,8 @@ local function draw_readout()
       y = y + rh
     end
     next_line(x0, y)
+    ImGui.EndChild(ctx)
   end
-  ImGui.EndChild(ctx)
 end
 
 local function draw_footer()

@@ -501,9 +501,9 @@ became `ui.compact_below_px`).
 
 | Key | Setting | Type and range | Default | Meaning |
 |---|---|---|---|---|
-| `agent.enable` | Agent access | on / off | `on` | Answer the agent verbs of the control protocol (hello, state, census, shot list, stems, config) |
-| `agent.allow_changes` | Allow changes | on / off | `on` | Let an external driver change the project (jumps, solo / mute, runs, commands, config set, arm, play, overview apply, renders); off = reads only |
-| `agent.allow_render` | Allow renders | on / off | `on` | Let "stems render" start a batch from outside (needs Allow changes too) |
+| `agent.enable` | Agent access | on / off | `off` | Answer an AI agent (everything it sends through the MCP server); off by default; your own companion tools are not affected |
+| `agent.allow_changes` | Allow changes | on / off | `off` | Let an AI agent change the project (jumps, solo / mute, runs, commands, config set, arm, play, goto, overview apply); off = reads only, stop / clear / restore still work with Agent access; your own companion tools are not affected |
+| `agent.allow_render` | Allow renders | on / off | `off` | Let an AI agent start a stems batch (needs Allow changes too); your own companion tools are not affected |
 | `agent.discovery` | Discovery file | on / off | `on` | Write <home>/.stagehand/agent.json with the ctl folder of the open project so the MCP server needs no arguments |
 
 ## Window (`ui.*`)

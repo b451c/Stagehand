@@ -1,6 +1,6 @@
 -- modules/navigator/init.lua - the Navigator module: scenes, markers, tracks, items, search,
 -- jump, audition, scene solo / mute with exact restore, families, focus, transport strip, per-project persistence.
--- Module contract (docs/architecture.md section 3): init, tick, draw, selftest, restore, shutdown.
+-- Module contract (app.register): init, tick, draw, selftest, restore, shutdown.
 -- Lua 5.4; no globals.
 
 local log = require('lib.log')

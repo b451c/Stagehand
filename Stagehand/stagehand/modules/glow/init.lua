@@ -1,5 +1,5 @@
 -- modules/glow/init.lua - the Glow module: a per-frame overlay composited over the arrange
--- that glows with the sound (js_ReaScriptAPI). Module contract (docs/architecture.md section 3): init, tick,
+-- that glows with the sound (js_ReaScriptAPI). Module contract (app.register): init, tick,
 -- draw, selftest, restore, shutdown. The overlay never touches the project; restore() and shutdown() release
 -- the bitmap. Lua 5.4; no globals.
 
@@ -19,6 +19,20 @@ local S = { msg = '', msg_frames = 0, compact = false }
 local M = { name = 'glow', title = t('glow.title') }
 
 local app
+
+-- the config keys the glow depends on: its own and the Navigator's families / marker classes (the tints and the cut
+-- flashes come from them)
+local WATCHED = { 'glow', 'navigator.families', 'navigator.marker_classes' }
+
+-- true when a changed key touches a watched one: everything (''), the key itself, a sub-key of it, or a group above
+-- it (a reset of 'navigator' changes the families too)
+function M.watches(k)
+  if k == '' then return true end
+  for _, w in ipairs(WATCHED) do
+    if k == w or k:sub(1, #w + 1) == w .. '.' or w:sub(1, #k + 1) == k .. '.' then return true end
+  end
+  return false
+end
 
 local function bind_project()
   E.rescan()
@@ -41,7 +55,7 @@ function M.init(app_)
   end)
   config.on_change(function(keys)
     for _, k in ipairs(keys) do
-      if k == '' or k == 'glow' or k:sub(1, 5) == 'glow.' or k:sub(1, 20) == 'navigator.families' or k:sub(1, 26) == 'navigator.marker_classes' then
+      if M.watches(k) then
         E.request_reconfigure()   -- once per frame however many keys a drag or a preset touched
         return
       end

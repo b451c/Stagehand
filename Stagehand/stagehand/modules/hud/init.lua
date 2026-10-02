@@ -2,7 +2,7 @@
 -- name, caption, progress, loudness, time, sync flashes) plus the HUD tab that controls it. The bar is a second
 -- ReaImGui window drawn through the app's draw_extra hook every frame; it learns about shots from the
 -- Director's events (shot_changed, director_active, director_shots) and never requires that module.
--- Module contract (docs/architecture.md section 3): init, tick, draw, draw_extra, selftest, restore, shutdown.
+-- Module contract (app.register): init, tick, draw, draw_extra, selftest, restore, shutdown.
 -- The HUD changes nothing in the project; the flash sequencer starts and stops the transport on purpose.
 -- Lua 5.4; no globals.
 

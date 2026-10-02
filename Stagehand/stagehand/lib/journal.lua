@@ -1,12 +1,12 @@
 -- lib/journal.lua - the restore journal: every project change Stagehand makes is recorded BEFORE it is made,
 -- persisted to the project (ProjExtState "journal"), and replayed in reverse to put things back exactly.
 --
--- Entry: { kind, key, was, set, owner }. Edit kinds (M1): solo (key = track GUID, I_SOLO), item_mute (key =
+-- Entry: { kind, key, was, set, owner }. Edit kinds (navigator): solo (key = track GUID, I_SOLO), item_mute (key =
 -- item GUID, B_MUTE), show (key = track GUID, B_SHOWINTCP), repeat (GetSetRepeat), loop_range (was = { t0, t1 }).
--- Layout kinds (M2, owner director): layout (key = track GUID, was = { show, height, lock, compact, pin }),
+-- Layout kinds (owner director): layout (key = track GUID, was = { show, height, lock, compact, pin }),
 -- env_vis (key = envelope GUID, was = 0/1), view (was = { v0, v1 }), scroll (was = px), toggle (key = command
 -- id, was = 0/1, name = a word the action name must contain), ruler_lane (was = lane N, blind toggle).
--- M5 kinds: master_vis, env_lane_h, window_rect, dock_id. M6 kinds (stems): mute, master_fx, send_mute,
+-- Overview / recorder kinds: master_vis, env_lane_h, window_rect, dock_id. Stems kinds: mute, master_fx, send_mute,
 -- render_num, render_str (see the restorers below).
 -- owner names who made the change so a subset can be restored. add() keeps the first entry for a kind+key
 -- (its `was` is the truth); restore() puts an edit value back only when the project still holds the value
@@ -203,8 +203,8 @@ restorers.ruler_lane = function(e)
   return 'restored'
 end
 
--- M5 kinds. master_vis (was = GetMasterTrackVisibility), env_lane_h (key = envelope GUID, was = the LANEHEIGHT
--- line of the chunk or nil), window_rect (key = 'main' | 'video', was = { l, t, w, h } screen px, y down; the video
+-- Overview / recorder kinds. master_vis (was = GetMasterTrackVisibility), env_lane_h (key = envelope GUID, was = the LANEHEIGHT
+-- line of the chunk or nil), window_rect (key = 'main' | 'video', was = { l, t, w, h } native js rect (Cocoa y on macOS); the video
 -- window is found by its title), dock_id (key = window ident, was = the docker index GetConfigWantsDock returned)
 restorers.master_vis = function(e)
   local v = tonumber(e.was)
@@ -244,7 +244,7 @@ restorers.dock_id = function(e)
   return 'restored'
 end
 
--- M6 kinds (owner stems). mute (key = track GUID, B_MUTE; edit kind: kept when the user changed it since),
+-- Stems kinds (owner stems). mute (key = track GUID, B_MUTE; edit kind: kept when the user changed it since),
 -- master_fx (key = 'master', was = I_FXEN of the master track), send_mute (key = track GUID .. '#' .. send index,
 -- was = B_MUTE of that send), render_num (key = a GetSetProjectInfo RENDER_* name, was = the number),
 -- render_str (key = a GetSetProjectInfo_String RENDER_* name, was = the string). Render kinds are put back

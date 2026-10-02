@@ -146,10 +146,10 @@ M.defaults = {
     checklist = { min_w = 1280, min_h = 720 },
     export = { dir = '', time_format = 'seconds' },       -- dir empty = <project>/Render; seconds | timecode | min_sec
   },
-  agent = {
-    enable = true,          -- the agent verbs (hello, state, census, ...) answer
-    allow_changes = true,   -- action verbs (nav, director, command, config set, arm, play, goto, overview apply, stems render)
-    allow_render = true,    -- "stems render" and the recorder's arm (needs allow_changes too)
+  agent = {                 -- the user's switches (Agent tab, global); all off until the user turns them on
+    enable = false,         -- the agent verbs (hello, state, census, ...) answer
+    allow_changes = false,  -- action verbs (nav, director, command, config set) and, for lines an agent sent, arm, play, goto, overview apply, ...
+    allow_render = false,   -- an agent's "stems render" (needs allow_changes too)
     discovery = true,       -- write <home>/.stagehand/agent.json so the MCP server finds the ctl folder without arguments
   },
   stems = {

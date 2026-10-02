@@ -1,5 +1,5 @@
--- @description Stagehand - session navigator, showcase director and session overview
--- @version 1.0.1
+-- @description Stagehand - session navigator, showcase director, stem delivery and session overview
+-- @version 1.0.2
 -- @author Bartosz Sroczynski (falami.studio)
 -- @provides
 --   [main] Stagehand.lua
@@ -22,21 +22,30 @@
 -- @about
 --   # Stagehand for REAPER
 --
---   Navigate a large session (scenes, markers, tracks, items, audition in place, scene solo/mute with exact
---   restore), direct a showcase recording (the arrange follows playback with the right lanes, zoom, glow and
---   captions) and capture a one-image overview of the whole session. Everything is configurable in one Settings
---   window with presets and per-project overrides.
+--   Session navigator, showcase director, stem delivery and session overview in one package. Navigate a large
+--   session (scenes, markers, tracks, items, audition in place, scene solo/mute with exact restore), direct a
+--   showcase recording (the arrange follows playback with the right lanes, zoom, glow and captions), deliver stems
+--   (stem sets in bulk from the session structure, a matrix editor, render settings owned by Stagehand, a
+--   sequential renderer with a pre-flight and a results page with peak and loudness) and capture a one-image
+--   overview of the whole session. Everything is configurable in one Settings window with presets and per-project
+--   overrides.
 --
---   Requires ReaImGui (install it through ReaPack). js_ReaScriptAPI unlocks the glow overlay, the screen layout
---   and the overview geometry. An AI agent (Claude and the like) can read the session and drive Stagehand through
---   the bundled MCP server, at your discretion. Stems: stem sets in bulk from the session structure, a matrix editor,
---   render settings owned by Stagehand, a sequential renderer with a pre-flight and a results page with peak and
---   loudness. A falami.studio product, MIT licence. User guide: https://b451c.github.io/Stagehand/guide.html
+--   Requires ReaImGui (ReaTeam Extensions repository, install it through ReaPack). js_ReaScriptAPI unlocks the glow
+--   overlay, the screen layout and the overview geometry. An AI agent (Claude and the like) can read the session
+--   and drive Stagehand through the bundled MCP server once you switch agent access on in the Agent tab (off by
+--   default). A falami.studio product, MIT licence. User guide: https://b451c.github.io/Stagehand/guide.html
 --
 --   Stagehand is free and open source. If it earns its place in your sessions, consider supporting its
 --   development: Ko-fi https://ko-fi.com/quickmd - Buy Me a Coffee https://buymeacoffee.com/bsroczynskh -
 --   PayPal https://paypal.me/b451c
 -- @changelog
+--   1.0.2 - agent access is off by default and the switches apply to AI agents only (everything the MCP server sends);
+--   put-back verbs always work, an agent can no longer change the switches, the raw tool never renders. Stems: a batch
+--   keeps the media online when REAPER is not the active app (renders were silent with REAPER's offline-when-inactive
+--   preference), bulk add keeps the names (no " 2"). macOS: overview capture, recorder layout and the stems matrix
+--   work with REAPER on any display. Director: Start run switches auto-follow on. Overview: Done in guided capture
+--   restores the layout. Glow reacts to family rule edits; hud.show_progress works; protocol values with spaces are
+--   quoted; ReaImGui child windows closed only when opened; documentation corrected.
 --   1.0.1 - agent access: the shot list can be written through the protocol (director shots set / add / update / remove /
 --   clear / from_scenes) and the MCP tool stagehand_shots_set; the About tab and the log show the package version (1.0.0
 --   reported 0.1.0-dev); the Pages root redirects to the guide.

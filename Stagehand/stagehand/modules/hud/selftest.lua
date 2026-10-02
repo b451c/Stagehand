@@ -11,6 +11,7 @@ local view = require('lib.view')
 local config = require('config')
 local loudness = require('lib.loudness')
 local text = require('lib.text')
+local state = require('state')
 
 local ST = {}
 
@@ -83,6 +84,18 @@ function ST.run(T)
   T.fact('time_string_timecode', B.time_string(65.25, 'timecode'))
 
   -- 2. the bar window ---------------------------------------------------------------------------------------------------
+  -- the bar's remembered window (hud.window: visible / dock, project and global ExtState) belongs to the machine: a
+  -- session that left the bar floating made the dock check below fail on a macOS test machine, so the test
+  -- starts from no remembered window, as on a fresh install (the bar saves its own state again as it always does)
+  T.fact('hud_window_before', tostring(state.gget('hud.window')))
+  if H.visible then
+    H.mixer_at_show = view.toggle_state(40078, 'mixer')   -- a mixer sharing the bar's docker is re-asserted on close
+    H.show(false)
+    T.wait_until(function() return H.mixer_check == nil end, 30, 'mixer re-check after the remembered bar closed')
+  end
+  state.pset('hud.window', ''); state.gset('hud.window', nil)
+  H.load()
+  H.shown_once = nil
   local dockers = {}
   if reaper.DockGetPosition then
     for i = 0, 15 do
@@ -96,7 +109,7 @@ function ST.run(T)
     if reaper.DockGetPosition and reaper.DockGetPosition(i) == 0 then bottom = i; break end
   end
   set('dock', 'bottom'); set('auto_show', true); set('loudness.mode', 'live'); set('caption_lang', 'primary')
-  set('show_time', true); set('time_format', 'min_sec'); set('progress.style', 'bar'); set('show_hints', false)
+  set('show_time', true); set('time_format', 'min_sec'); set('progress.style', 'bar'); set('show_progress', true); set('show_hints', false)
   set('flash.frames', 3); set('flash.gap_frames', 6); set('flash.end_mode', 'custom')
   H.reconfigure()
   H.show(true)
@@ -109,6 +122,16 @@ function ST.run(T)
   else
     T.check('bar floats (no bottom docker in this config)', H.dock, 0)
   end
+  -- hud.show_progress: off = no progress row (the caption gets the room, as with style off); on = the style's height
+  T.check('progress row at the style height (show_progress on)', B.progress_h(H.cfg), tonumber(H.cfg.progress and H.cfg.progress.height_px) or 4)
+  set('show_progress', false)
+  H.reconfigure()
+  T.check('no progress row with show_progress off', B.progress_h(H.cfg), 0)
+  T.wait(2)
+  T.ok('bar draws with show_progress off', H.bar_w > 100 and H.bar_h > 20, string.format('%dx%d', H.bar_w, H.bar_h))
+  set('show_progress', true)
+  H.reconfigure()
+  T.check('progress row back (show_progress on)', B.progress_h(H.cfg) > 0, true)
 
   -- 3. the Director's events drive the bar --------------------------------------------------------------------------------
   app.emit('director_shots', 5, 56)
@@ -201,6 +224,8 @@ function ST.run(T)
   app.emit('director_active', false)
   T.wait(2)
   T.check('auto-show hides the bar when the run ends', H.visible, false)
+  -- a mixer sharing the bar's docker loses its toggle when the bar closes and the module re-asserts it 4 frames later
+  T.wait_until(function() return H.mixer_check == nil end, 30, 'mixer re-check after the bar closed')
   local after = layout.dump()
   layout.write(T.out_path('layout_after.json'), after)
   local diff = layout.diff(before, after)
@@ -209,7 +234,7 @@ function ST.run(T)
   end
   T.log('RESTORE_DIFF ' .. #diff)
   T.check('restore diff', #diff, 0)
-  for _, key in ipairs({ 'dock', 'auto_show', 'loudness.mode', 'loudness.curve_file', 'caption_lang', 'show_time', 'time_format', 'progress.style', 'show_hints',
+  for _, key in ipairs({ 'dock', 'auto_show', 'loudness.mode', 'loudness.curve_file', 'caption_lang', 'show_time', 'time_format', 'progress.style', 'show_progress', 'show_hints',
       'flash.frames', 'flash.gap_frames', 'flash.end_mode', 'flash.end_custom_s' }) do
     config.reset('hud.' .. key, 'project')
   end

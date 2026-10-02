@@ -5,7 +5,7 @@
 -- frames and stops. Tokens with the wall time (time_precise) and the play position are emitted at every phase
 -- edge - PLAY_REQUEST, FLASH_START (the first dark frame), PLAY_CMD, PLAY_POS (the first playing frame),
 -- PLAY_MOVING (position > start + 50 ms: the engine really runs), FLASH_END (the first white frame of the end
--- flash), END - as the app event "hud_flash" and as HUD FLASH lines in the log; the recorder companions (M5)
+-- flash), END - as the app event "hud_flash" and as HUD FLASH lines in the log; the recorder companions
 -- write them to their state file. A transport stop by the user cancels the sequence. Lua 5.4; no globals.
 
 local log = require('lib.log')

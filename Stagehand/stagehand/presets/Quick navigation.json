@@ -2,7 +2,7 @@
   "stagehand_preset": {
     "name": "Quick navigation",
     "description": "Session work without the show: fuzzy search, focus tracks on a scene jump, a tighter marker window, the caption bar stays closed and the glow is off.",
-    "stagehand_version": "0.1.0-dev",
+    "stagehand_version": "1.0.2",
     "schema": 2,
     "created": "2026-09-07"
   },

@@ -2,7 +2,7 @@
   "stagehand_preset": {
     "name": "Tutorial",
     "description": "For a walkthrough video: the whole track tree stays visible, follow view with a longer window, key hints and timecode on the bar, a softer fill glow with column sparks.",
-    "stagehand_version": "0.1.0-dev",
+    "stagehand_version": "1.0.2",
     "schema": 2,
     "created": "2026-09-07"
   },

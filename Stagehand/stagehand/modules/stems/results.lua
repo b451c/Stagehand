@@ -67,6 +67,14 @@ function RS.to_md(results)
   end
   out[#out + 1] = ''
   out[#out + 1] = 'Peak dBFS = sample peak scanned by Stagehand (WAV) or REAPER\'s statistic; LUFS columns come from REAPER\'s render statistics when that preference is on.'
+  if (results.brought_online or 0) > 0 then
+    out[#out + 1] = ''
+    out[#out + 1] = string.format('%d offline sources were brought online for this batch.', results.brought_online)
+  end
+  if (results.silent or 0) > 0 then
+    out[#out + 1] = ''
+    out[#out + 1] = 'Silent = no sample above the threshold. The usual cause is media that were offline during the render (REAPER\'s "Set media items offline when application is not active" with another app in front); else the stem has no audio in its range.'
+  end
   return table.concat(out, '\n') .. '\n'
 end
 

@@ -1,7 +1,7 @@
 -- modules/director/init.lua - the Director module: shot list with validation, follow-play
 -- engine (lanes, locked heights with a verify pass, pins, parents, envelope story mode, page / follow view with
 -- an eased zoom, ruler lanes, continuous-scroll off), full restore through the journal, rehearsal controls.
--- Module contract (docs/architecture.md section 3): init, tick, draw, selftest, restore, shutdown.
+-- Module contract (app.register): init, tick, draw, selftest, restore, shutdown.
 -- Lua 5.4; no globals.
 
 local log = require('lib.log')

@@ -6,7 +6,9 @@
 -- Variant 'companion': the scenario hands over to agent/stagehand_mcp.py --selftest (started by the harness),
 -- which runs the MCP protocol in-process against this REAPER and writes agent_check.json; the scenario checks
 -- its verdict. Sabotage 'ignore_gate' makes every gate say yes (the negative control: the refusal checks must
--- go red). Lua 5.4; no globals.
+-- go red). The switches are off by default: the scenario checks that, turns them on in the global layer as the
+-- user does in the Agent tab and puts the global layer back exactly at the end. Lines marked with lib/ctl's
+-- agent marker stand for the MCP server; unmarked lines for the user's own companion drivers. Lua 5.4; no globals.
 
 local layout = require('lib.layout')
 local config = require('config')
@@ -131,6 +133,8 @@ local function schema_keys_with(prefix)
   return n
 end
 
+local SWITCHES = { 'agent.enable', 'agent.allow_changes', 'agent.allow_render' }
+
 function ST.run(T)
   local companion = T.variant == 'companion'
   T.fact('variant', companion and 'companion' or 'demo')
@@ -140,10 +144,24 @@ function ST.run(T)
   app.set_tab('agent')
   config.set('recorder.ctl.dir', T.out_path('ctl'), 'project')   -- the harness fetches out/ctl with the evidence
   config.set('hud.auto_show', false, 'project')                   -- a run must not dock the bar (the arrange height would change)
-  for _, key in ipairs({ 'agent.enable', 'agent.allow_changes', 'agent.allow_render' }) do config.reset(key, 'project') end
+  for _, key in ipairs(SWITCHES) do config.reset(key, 'project') end
   ctl.bind()
   ctl.clear_state()
   T.fact('ctl_dir', tostring(ctl.dir()))
+
+  -- the switches are off by default: untouched, an agent gets nothing; then on in the global layer (the Agent tab)
+  T.check('defaults: agent access off', config.default('agent.enable'), false)
+  T.check('defaults: allow changes off', config.default('agent.allow_changes'), false)
+  T.check('defaults: allow renders off', config.default('agent.allow_render'), false)
+  T.check('defaults: discovery file on', config.default('agent.discovery'), true)
+  local global0 = {}
+  for _, key in ipairs(SWITCHES) do
+    global0[key] = config.raw(key, 'global')
+    config.reset(key, 'global')
+  end
+  local _, dline = ask('state', 'STATE')
+  T.ok('defaults: an agent is refused while the switches are untouched', is_refused(dline) and dline:find('Agent access', 1, true) ~= nil, tostring(dline))
+  for _, key in ipairs(SWITCHES) do config.set(key, true, 'global') end
 
   local nav = app.by_name['navigator']
   local dir = app.by_name['director']
@@ -289,6 +307,23 @@ function ST.run(T)
   T.check('config reset: value back', config.get('director.timing.lead_s'), before_lead, 1e-9)
   ask('config reset director.view.mode', 'CONFIG')
   ask('config reset navigator.jump.time_selection', 'CONFIG')
+  -- the switches belong to the user: readable, never writable through the protocol (changes are on here)
+  _, eline = ask('config set agent.enable off', 'CONFIG')
+  T.ok('config set: an agent switch refused', is_refused(eline) and eline:find('belong to the user', 1, true) ~= nil, tostring(eline))
+  T.check('config set: the switch untouched', config.get('agent.enable'), true)
+  T.ok('config set: no project override of the switch', not config.has_override('agent.enable', 'project'))
+  _, eline = ask('config set agent.allow_changes off global', 'CONFIG')
+  T.ok('config set: an agent switch refused in the global scope', is_refused(eline), tostring(eline))
+  T.check('config set: the global switch untouched', config.raw('agent.allow_changes', 'global'), true)
+  _, eline = ask('config reset agent.allow_render', 'CONFIG')
+  T.ok('config reset: an agent switch refused', is_refused(eline), tostring(eline))
+  _, eline = ask('config reset agent.allow_render global', 'CONFIG')
+  T.ok('config reset: an agent switch refused in the global scope', is_refused(eline), tostring(eline))
+  T.check('config reset: the global switch kept', config.raw('agent.allow_render', 'global'), true)
+  local cga = ask('config get agent.enable', 'CONFIG')
+  T.check('config get: an agent switch still reads', cga and cga.entry and cga.entry.value, true)
+  cl = ask('config list agent', 'CONFIG')
+  T.check('config list: the agent switches still list', cl and cl.n, schema_keys_with('agent'))
 
   -- 7. navigator actions ---------------------------------------------------------------------------------------------------------------------
   local sc3, sc4 = D.scenes[3], D.scenes[4]
@@ -419,19 +454,33 @@ function ST.run(T)
   _, eline = ask('config set director.timing.lead_s 0.5', 'CONFIG')
   T.ok('changes off: config set refused', is_refused(eline), tostring(eline))
   T.check('changes off: config untouched', config.get('director.timing.lead_s'), before_lead, 1e-9)
-  _, eline = ask('goto 5', 'GOTO')
-  T.ok('changes off: the recorder\'s goto refused too', is_refused(eline), tostring(eline))
+  _, eline = ask(ctl.AGENT_MARK .. ' goto 5', 'GOTO')
+  T.ok('changes off: an agent\'s goto (marked line) refused', is_refused(eline), tostring(eline))
   T.check('changes off: cursor still untouched', reaper.GetCursorPosition(), cur, 0.001)
-  _, eline = ask('stems render', 'STEMS_START')
-  T.ok('changes off: stems render refused', is_refused(eline), tostring(eline))
+  _, eline = ask(ctl.AGENT_MARK .. ' stems render', 'STEMS_START')
+  T.ok('changes off: an agent\'s stems render refused', is_refused(eline), tostring(eline))
   T.check('changes off: no batch started', stems and stems.E.active or false, false)
   local st3 = ask('state', 'STATE')
   T.ok('changes off: reads still answer', st3 ~= nil and st3.agent.allow_changes == false)
   ask('config get agent.allow_changes', 'CONFIG')
+  -- the put-back verbs need Agent access only: a driver can always clean up
+  local npb = ask('nav restore', 'NAV')
+  T.ok('changes off: nav restore answers', npb ~= nil and npb.action == 'restore')
+  npb = ask('nav clear', 'NAV')
+  T.ok('changes off: nav clear answers', npb ~= nil and npb.action == 'clear')
+  local dpb = ask('director stop', 'DIRECTOR')
+  T.ok('changes off: director stop answers', dpb ~= nil and dpb.action == 'stop' and dpb.active == false)
+  dpb = ask('director validate', 'DIRECTOR')
+  T.ok('changes off: director validate answers', dpb ~= nil and dpb.action == 'validate')
+  local cpb = ask('command director_stop', 'COMMAND')
+  T.ok('changes off: a stop command answers', cpb ~= nil and cpb.name == 'director_stop')
+  _, eline = ask('nav jump time 3', 'NAV')
+  T.ok('changes off: nav jump still refused after the put-backs', is_refused(eline), tostring(eline))
+  T.check('changes off: cursor untouched after the put-backs', reaper.GetCursorPosition(), cur, 0.001)
   config.reset('agent.allow_changes', 'project')
   config.set('agent.allow_render', false, 'project')
-  _, eline = ask('stems render', 'STEMS_START')
-  T.ok('render off: stems render refused', is_refused(eline), tostring(eline))
+  _, eline = ask(ctl.AGENT_MARK .. ' stems render', 'STEMS_START')
+  T.ok('render off: an agent\'s stems render refused', is_refused(eline), tostring(eline))
   T.check('render off: no batch started', stems and stems.E.active or false, false)
   nj = ask('nav jump time 4.25', 'NAV')
   T.check('render off: other changes still allowed', reaper.GetCursorPosition(), 4.25, 0.002)
@@ -445,6 +494,24 @@ function ST.run(T)
   local mark = state_size()
   ctl.dispatch('ping', app.frame)
   T.ok('agent off: the companions\' ping still answers', find_token('PONG', mark) ~= nil)
+  _, eline = ask(ctl.AGENT_MARK .. ' ping', 'PONG')
+  T.ok('agent off: an agent\'s ping (marked line) refused', is_refused(eline), tostring(eline))
+  -- every switch off: the user's own companion (an unmarked line) still drives its verbs, an agent (marked) does not
+  config.set('agent.allow_changes', false, 'project')
+  config.set('agent.allow_render', false, 'project')
+  local cur2 = reaper.GetCursorPosition()
+  _, eline = ask(ctl.AGENT_MARK .. ' goto 6.5', 'GOTO')
+  T.ok('switches off: an agent\'s goto (marked line) refused', is_refused(eline), tostring(eline))
+  T.check('switches off: cursor untouched by the agent', reaper.GetCursorPosition(), cur2, 0.001)
+  local _, gline = ask('goto 6.5', 'GOTO')
+  T.ok('switches off: the user\'s companion goto (unmarked line) answers', gline ~= nil and gline:find(' GOTO ', 1, true) ~= nil, tostring(gline))
+  T.check('switches off: the companion moved the cursor', reaper.GetCursorPosition(), 6.5, 0.002)
+  T.wait(3)   -- the discovery file is rewritten on the next tick after a switch moved
+  local dpath = M.discovery_path()
+  local doff = dpath and json.decode(read_file(dpath) or '')
+  T.ok('switches off: the discovery file says agent access is off', type(doff) == 'table' and doff.enable == false and doff.allow_changes == false, doff and tostring(doff.enable))
+  config.reset('agent.allow_changes', 'project')
+  config.reset('agent.allow_render', 'project')
   config.reset('agent.enable', 'project')
   st3 = ask('state', 'STATE')
   T.ok('agent on again: state answers', st3 ~= nil)
@@ -493,6 +560,10 @@ function ST.run(T)
         T.ok('companion: render refused without confirmation', v.render_refused == true)
         T.ok('companion: config round trip', v.config_ok == true)
         T.ok('companion: raw verb', v.raw_ok == true)
+        T.ok('companion: raw stems render refused without reaching Stagehand', v.raw_render_refused == true)
+        T.ok('companion: agent switches refused through stagehand_config', v.agent_keys_refused == true)
+        T.ok('companion: offline checks (token parser, line guard, access hints)', v.offline_ok == true, v.offline_failures and table.concat(v.offline_failures, '; ') or nil)
+        T.check('companion: server version from the package header', v.version, app.version)
         T.ok('companion: unknown tool is an error', v.unknown_tool_error == true)
         T.check('companion: agent name from hello', S.agent, 'MCP agent')
       end
@@ -517,6 +588,15 @@ function ST.run(T)
   for _, key in ipairs({ 'director.timing.lead_s', 'director.view.mode', 'navigator.jump.time_selection', 'hud.auto_show', 'agent.enable', 'agent.allow_changes', 'agent.allow_render' }) do
     config.reset(key, 'project')
   end
+  for _, key in ipairs(SWITCHES) do   -- the global layer exactly as it was before the scenario
+    if global0[key] == nil then config.reset(key, 'global') else config.set(key, global0[key], 'global') end
+  end
+  T.ok('switches: the global layer put back', (function()
+    for _, key in ipairs(SWITCHES) do
+      if config.raw(key, 'global') ~= global0[key] then return false end
+    end
+    return true
+  end)())
   T.fact('agent_commands', S.n_cmds)
 
   -- 15. the support links of the About tab: three https links and the opener (SWS or the clipboard)

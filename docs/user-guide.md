@@ -1,27 +1,33 @@
 # Stagehand user guide
 
 Stagehand is one ReaScript package for REAPER 7: a session navigator, a showcase director with glow and captions,
-recorder companions and a one-image session overview. This guide grows with the milestones; today it covers the
-**Navigator**, the **Director** (shot list and follow-play), the **HUD** (the caption bar for the recording), the
-**Glow** (the overlay that lights the arrange with the sound), the **Overview** (one tall picture of the whole
-session), the **Recorder** (the control protocol for the companion scripts, the checklist, the screen layout at
-start, the shot-list export), the **Stems** (stem definitions in bulk, a matrix editor, Stagehand-owned render
-settings, a sequential renderer with a pre-flight and a results page), the **Agent** tab (an AI agent reads the
-session and drives Stagehand through the bundled MCP server, at your discretion) and **Settings** (every knob,
-presets, per-project overrides). Requirements: REAPER 7.x
-and ReaImGui (install it through ReaPack: Extensions > ReaPack > Browse packages > "ReaImGui: ReaScript binding for
-Dear ImGui"). js_ReaScriptAPI is optional: it unlocks the Glow overlay, the screen layout, the overview geometry and
-scrolling. The companion scripts in `tools/` need Python 3 (Pillow and ffmpeg widen what they can do).
+stem delivery, recorder companions and a one-image session overview. This guide covers the **Navigator**, the
+**Director** (shot list and follow-play), the **HUD** (the caption bar for the recording), the **Glow** (the overlay
+that lights the arrange with the sound), the **Overview** (one tall picture of the whole session), the **Recorder**
+(the control protocol for the companion scripts, the checklist, the screen layout at start, the shot-list export),
+the **Stems** (stem definitions in bulk, a matrix editor, Stagehand-owned render settings, a sequential renderer with
+a pre-flight and a results page), the **Agent** tab (an AI agent reads the session and drives Stagehand through the
+bundled MCP server, once you switch it on) and **Settings** (every knob, presets, per-project overrides).
+Requirements: REAPER 7.x and ReaImGui (install it through ReaPack from the ReaTeam Extensions repository, which
+ReaPack ships with: Extensions > ReaPack > Browse packages > "ReaImGui: ReaScript binding for Dear ImGui"; Stagehand
+shows a message when it is missing). js_ReaScriptAPI is optional: it unlocks the Glow overlay, the screen layout,
+the overview geometry and scrolling. SWS is optional: it opens links and folders, and lets a stems batch switch two
+REAPER preferences for the batch (render statistics, offline media). The companion scripts in `tools/` need Python 3
+(Pillow and ffmpeg widen what they can do).
 
 ## Install and start
 
 1. Install the package through ReaPack (repository index: see the README) or copy the `Stagehand` folder into
    `<REAPER resource path>/Scripts/` and load `Stagehand.lua` through Actions > Show action list > New action >
-   Load ReaScript.
+   Load ReaScript. ReaPack does not install ReaImGui together with Stagehand: install "ReaImGui: ReaScript binding
+   for Dear ImGui" from the ReaTeam Extensions repository the same way if you do not have it yet (Stagehand shows a
+   message when it is missing).
 2. Run **Stagehand** (the main window), **Stagehand - Navigator**, **Stagehand - Director**, **Stagehand - HUD**,
-   **Stagehand - Overview**, **Stagehand - Recorder**, **Stagehand - Agent** or **Stagehand - Settings** (they open the app on that tab; when
-   the app already runs they only switch the tab; the HUD launcher also shows the caption bar). **Stagehand - Glow toggle** switches the overlay on and off in the running app - give it a
-   shortcut for the recording session. Give the main action a shortcut too, for example Ctrl+Alt+N.
+   **Stagehand - Overview**, **Stagehand - Recorder**, **Stagehand - Stems**, **Stagehand - Agent** or
+   **Stagehand - Settings** (they open the app on that tab; when the app already runs they only switch the tab; the
+   HUD launcher also shows the caption bar). **Stagehand - Glow toggle** switches the overlay on and off in the
+   running app - give it a shortcut for the recording session. Give the main action a shortcut too, for example
+   Ctrl+Alt+N.
 3. The window is dockable: click the dock icon in the header, press Ctrl+D, or drag the window into a REAPER docker.
    Dock, size, active tab and the toggles are remembered per project (with a global fallback for new projects).
 
@@ -174,7 +180,7 @@ During a **run** the arrange follows playback: a little before each shot starts,
 shot's lanes, their heights are locked so the lanes fill the arrange, the folder rows and envelope lanes you asked
 for stay visible, and the view zooms to the shot with a short animation. When the run stops, everything is put back
 exactly as it was. The HUD shows the shot's caption while it plays and the Glow lights the items that sound (their
-own chapters below); the recorder companions arrive with milestone M5.
+own chapters below); recording a run as a video is covered in [Recorder](#recorder).
 
 ![The Director: the shot list built from scenes, one lane rule per shot, validation clean.](images/director.png){narrow}
 
@@ -220,8 +226,9 @@ own chapters below); the recorder companions arrive with milestone M5.
 
 ### Validation
 
-*Validate* (also Ctrl+R, and automatically after edits) checks the list the way the offline checker of the source
-project did, and reports per shot:
+*Validate* (also Ctrl+R, and automatically after edits) checks every shot against the session as it is now (its
+range, its lane and envelope rules, the captions, the gaps and overlaps with its neighbours, the height its lanes
+need in the current arrange) and reports per shot:
 
 - errors: an empty range, a lane rule that matches no track, no lane resolving at all;
 - warnings: gaps or overlaps between shots, a missing name, a caption longer than the HUD limit (135 characters by
@@ -347,8 +354,9 @@ toggles; keep the hints off for the recording.
 frames, then the transport starts; when the play position passes the end (the last shot's end plus 0.17 s, or the
 project end, or a custom time) the bar paints white for 3 frames again and the transport stops. Every phase edge is
 logged with the wall time and the play position (`PLAY_REQUEST`, `FLASH_START`, `PLAY_CMD`, `PLAY_POS`,
-`PLAY_MOVING`, `FLASH_END`, `END`) so the recorder post (M5) can anchor the mix to the picture; on the test machines the
-engine reported "moving" 40-75 ms after the play command. *Stop* or Esc cancels the sequence and stops the transport.
+`PLAY_MOVING`, `FLASH_END`, `END`) so the recorder's post step (see [Recorder](#recorder)) can anchor the mix to the
+picture; on the test machines the engine reported "moving" 40-75 ms after the play command. *Stop* or Esc cancels
+the sequence and stops the transport.
 
 ### The HUD tab
 
@@ -383,7 +391,7 @@ For every track shown in the track panel (muted tracks stay dark) the items unde
 - a **fill** whose brightness follows the track's own post-fader meter, normalised to the track's recent peak (an
   adaptive reference that sinks slowly, with a floor so quiet beds still pulse; instant attack, 30 dB/s release,
   gamma 1.6 so quiet moments stay dim);
-- a 1 px **outline** a little stronger than the fill;
+- a 1 px **outline** a little stronger than the fill (2 px in the *Edge* style);
 - in the *Bar* style a **level bar** from the item's bottom, driven by the take peaks of the item's own source
   (400 Hz peaks read directly from the media, unaffected by REAPER's meter ballistics);
 - **sparks**: on every onset (the level rose at least 6 dB above a fast-falling detector, at least 60 ms after the
@@ -401,7 +409,8 @@ so they never punch dark holes into the glow.
 
 **Modes**: *Meter* (above), *Item* (the glow follows the item bounds only: a flash at the item start decaying to a
 low sustain, a release after the end, long items fainter; no meter needed) and *Off*. **Styles**: *Bar* (faint tint
-plus the level bar), *Fill* (a uniform tint that breathes with the meter), *Edge* (only the outline lights up).
+plus the level bar), *Fill* (a uniform tint that breathes with the meter), *Edge* (no fill: only a 2 px outline
+lights up, brighter with the level).
 
 **Profiles** tune the numbers per family (the families of the Navigator): the shipped *vocal* profile (Dialogue) is
 even (release 40 dB/s, 14 dB window, gamma 1.0, onset 5 dB, gap 90 ms), *music* is rhythmic (release 60, window 12,
@@ -410,9 +419,10 @@ Settings tab (Glow > *Profiles*, a JSON editor with validation) and stored under
 
 ### The Glow tab
 
-*Glow on* / *Glow off* (G), *Mode*, *Style* and *Spark*, four sliders with live preview (*Warm*, *Tint* or *Fill* depending on
-the style, *Bar*, *Spark*; the glow follows while you drag and the setting is written when you let go), the
-performance block, the profiles list and three footer buttons: *Fake meter*
+*Glow on* / *Glow off* (G), *Mode*, *Style* and *Spark*, the sliders with live preview (the glow follows while you
+drag and the setting is written when you let go; which sliders appear depends on the style: *Warm*, *Tint*, *Bar*
+and *Spark* in Bar, *Warm*, *Fill* and *Spark* in Fill, *Warm* and *Spark* in Edge), the performance block, the
+profiles list and three footer buttons: *Fake meter*
 (synthetic levels from the item bounds for machines without audio - the test machines; the real meter is still read),
 *Evidence log* (one line per lit track per frame into `glow_meter.txt` in the Stagehand folder while playing) and
 *Reset perf*.
@@ -499,7 +509,8 @@ file from a newer version loses nothing.
 
 The layers carry a schema version. When Stagehand moves or renames a key, the file is migrated on load and the
 migration is listed in the panel once; the global file is backed up first (`config.json.schema<N>.bak`). Schema 1
-(the M1-M3 builds) to 2: `navigator.layout.compact_below_px` became `ui.compact_below_px` (it applies to every tab).
+(development builds before 1.0.0) to 2: `navigator.layout.compact_below_px` became `ui.compact_below_px` (it applies
+to every tab).
 
 ### Keys (window focused, Settings tab)
 
@@ -533,9 +544,10 @@ offsets. Everything the layout changes is journaled and put back.
 
 *Apply layout* (Ctrl+Enter) does, in one frame: the mixer closed, the master row taken out of the track panel, the
 video window closed (each a setting), every track shown at one locked height (`overview.track_px`, 34 px) with the
-folders opened and the pins off, tracks matching the *Hide* rule left out (`^GUIDE|=REF`: starts with, equals,
-contains; `|` separates), every **used** envelope lane open at one height (`overview.env_lane_px`, 26 px; used = at
-least *Min points* points or an automation item), the other lanes closed, the view from 0 to the end (the last video
+folders opened and the pins off, tracks matching the *Hide* rule left out (empty by default; for example
+`^GUIDE|=REF`: `^` starts with, `=` equals, a plain token contains; `|` separates), every **used** envelope lane
+open at one height (`overview.env_lane_px`, 26 px; used = at least *Min points* points or an automation item), the
+other lanes closed, the view from 0 to the end (the last video
 item, the project length, or a custom time, plus a pad), scrolled to the top. The summary under the buttons says
 what happened: rows shown and hidden, lanes open and closed, the view end and why, the picture size in logical
 pixels, how many pages the capture needs. *Restore* (the same button) puts everything back; so does closing
@@ -564,9 +576,10 @@ it was verified on Linux and Windows.
 *Guided capture* (G) is the fallback when no companion runs: Stagehand applies the layout, hides its window, writes
 `pages.txt` and `geometry.txt` into the output folder and shows a small counter window (*Page 1 of 6*). Capture the
 REAPER window with whatever you like (Shift+Cmd+4 then Space on macOS, Win+Shift+S, a screenshot app), press *Next*
-(Space, N or the right arrow), repeat; *Done* on the last page restores the session. `overview.guided.auto_s` makes
-the pages advance by themselves for a screen recorder. Then put the screenshots into the folder as `page_00.png`,
-`page_01.png`, ... and run:
+(Space, N or the right arrow), repeat; *Done* on the last page restores the session. *Stop* (Esc) ends the capture
+early and leaves the layout in place: press *Restore* in the tab when you are finished. `overview.guided.auto_s`
+makes the pages advance by themselves for a screen recorder. Then put the screenshots into the folder as
+`page_00.png`, `page_01.png`, ... and run:
 
 ```
 python3 tools/overview_stitch.py "<Render/overview_<date>>"
@@ -627,14 +640,19 @@ restored.
 
 `<project folder>/Render/stagehand_ctl/` (or `recorder.ctl.dir`): a driver writes one line into `cmd`, Stagehand
 reads and deletes it every `recorder.ctl.poll_frames` frames and appends replies to `state` as
-`<time_precise> TOKEN key=value ...`. Verbs: `ping` (PONG), `arm` (ARMED with the shot count, the end time, whether
+`<time_precise> TOKEN key=value ...`. A value that contains a space or a quote is written quoted, as `key="..."`
+with backslash escapes inside (`SHOT k=3 name="Harbor at night"`), so a driver must parse quoted values; splitting
+the line at spaces is not enough. Verbs: `ping` (PONG), `arm` (ARMED with the shot count, the end time, whether
 the run and the bar are up), `play`, `stop` (STOPPED), `quit` (stop, Director run and layout restored, QUIT),
 `rect` (every rect the layout relies on), `hud` (write the hud file), `layout` / `unlayout`, `vid x y w h` (place
 the video window), `glow on|off`, `shots [csv]` (export), `goto <s>`, and the Overview's `overview apply | rect |
-scroll <px> | pages | restore`. While a run is armed the HUD's flash tokens (`PLAY_REQUEST`, `FLASH_START`,
+scroll <px> | pages | restore`. Every rect (the `RECT` replies, the hud file, `vid`) is in screen pixels, y down from the
+top of the main display, on every system and on any display. While a run is armed the HUD's flash tokens (`PLAY_REQUEST`, `FLASH_START`,
 `PLAY_CMD`, `PLAY_POS`, `PLAY_MOVING`, `FLASH_END`, `END`, with the play position) and `SHOT k=.. name=..`,
-`DIRECTOR_START` / `DIRECTOR_STOP` are mirrored into `state`. The protocol panel of the tab shows the folder, the
-companion command for the project, the last command and the last token.
+`DIRECTOR_START` / `DIRECTOR_STOP` are mirrored into `state`. The agent verbs of the same protocol are described in
+[Agent access](#agent-access); the switches there apply to AI agents only, so the companion drivers work as described
+here with every switch off. The protocol panel of the tab shows the folder, the companion command for the project,
+the last command and the last token.
 
 ### Recording with the companion
 
@@ -669,7 +687,8 @@ this release (verified by the developer, not on the test machines).
 or a file you pick when js_ReaScriptAPI is installed): JSON carries the whole shot model plus timecodes for tools;
 CSV has one row per shot (index, name, start, end, duration in seconds, timecode or m:ss by
 `recorder.export.time_format`, timecode columns, both captions, lane and envelope rules, view, parents) for
-spreadsheets and editors' notes. *Import (replace / append)* reads a JSON export back into the shot list.
+spreadsheets and editors' notes. *Import shot list (replace / append)* in the tab's menu reads a JSON export back into
+the shot list.
 
 ### Keys (window focused, Recorder tab)
 
@@ -743,13 +762,23 @@ always the master mix (never REAPER's stems mode or the region matrix, which are
 folder is an error), the enabled stems, the pattern, stems whose tracks are gone or partly missing, an empty range
 (REAPER would show "Nothing to render"), two stems writing the same file, files that exist and what the policy does
 with them, the transport (recording is an error; playing is stopped with *Fix*), whether REAPER's render statistics
-are on, and notes about the format and the variants. *Render* (Ctrl+Enter) runs the pre-flight and refuses to start
-on an error. The batch then goes stem by stem in the window's own loop: apply the cells and the variant (journaled),
-write the settings, defuse the file by policy, render with REAPER's "render using the most recent settings" action
-(synchronous: the script resumes when the file is written), measure the file, put the state back, wait a few frames,
-next. The strip shows the stem, the phase and a progress bar; *Stop* (Esc) ends the batch after the current stem.
-*Render one* renders the highlighted stem. A frame error, the Restore menu entry, closing the window and REAPER's exit
-drop the batch and restore everything it changed.
+are on, whether media can go offline while REAPER is not in front (below), and notes about the format and the
+variants. *Render* (Ctrl+Enter) runs the pre-flight and refuses to start on an error. The batch then goes stem by
+stem in the window's own loop: apply the cells and the variant (journaled), write the settings, defuse the file by
+policy, render with REAPER's "render using the most recent settings" action (synchronous: the script resumes when the
+file is written), measure the file, put the state back, wait a few frames, next. The strip shows the stem, the phase
+and a progress bar; *Stop* (Esc) ends the batch after the current stem. *Render one* renders the highlighted stem. A
+frame error, the Restore menu entry, closing the window and REAPER's exit drop the batch and restore everything it
+changed.
+
+**Media offline when REAPER is not in front.** REAPER's preference *Preferences > Media > Set media items offline
+when application is not active* takes every source offline while another application is in front, and a render
+then writes silence - which is exactly the situation of an agent or a companion starting a batch from a terminal.
+The pre-flight shows an *offline* row whenever the preference is on or a source is offline. With SWS installed it
+is a note: the batch turns the preference off, brings every offline source online, renders, and puts the preference
+back after (also on Stop, a frame error, the Restore entry or REAPER's exit); the sources stay online until REAPER
+takes them offline again the next time it loses focus. Without SWS it is a warning: keep REAPER in front during the
+batch or turn the option off, or the stems render silent.
 
 ### Results
 
@@ -762,9 +791,10 @@ next to the stems, `.csv` and `.md` by `stems.export.results`. Loudness (LUFS-I,
 REAPER's own peak come from **REAPER's render statistics**, which need the preference *Preferences > Rendering >
 Stats/Charts > save render statistics*: with SWS installed Stagehand switches it on for the batch and back after
 (`stems.results.reaper_stats`); without it the pre-flight says how to enable it and the results carry Stagehand's peak
-and length only. A stem whose peak is at or below `stems.results.silent_below_db` (-90 dBFS) is flagged **silent**
-(a solo state that plays nothing in the range). `tools/stems_check.py --results <folder>/stems_results.json`
-measures every WAV independently (peak, length, LUFS-I with numpy; ffmpeg ebur128 too when present) and reports the
+and length only. A stem whose peak is at or below `stems.results.silent_below_db` (-90 dBFS) is flagged **silent**;
+its tooltip names the usual cause - media that were offline during the render (see the pre-flight above) - else the
+stem has no audio in its range. `tools/stems_check.py --results <folder>/stems_results.json` measures every WAV
+independently (peak, length, LUFS-I with numpy; ffmpeg ebur128 too when present) and reports the
 differences.
 
 ### Restore: nothing is left behind
@@ -793,6 +823,7 @@ An AI agent (Claude, ChatGPT, anything that speaks MCP) can read the open sessio
 conversation: "what is in this session", "go to the fight scene", "solo scene 4", "start the showcase", "set the
 lead time to half a second", "render the stems and tell me how loud the music was". Nothing an agent does saves the
 project; every change it makes goes through the same journaled paths as your clicks and is restored like them.
+Agent access is off until you switch it on in the Agent tab (see *The three switches* below).
 
 ![The Agent tab: the connected agent, the last commands, the three switches and the install snippets.](images/agent.png){narrow}
 
@@ -801,13 +832,14 @@ project; every change it makes goes through the same journaled paths as your cli
 The Recorder's control protocol (the `cmd` / `state` files in `<project>/Render/stagehand_ctl`) grew agent verbs
 that answer with JSON files (`reply_N.json`, named in the token line): `hello <name>`, `verbs`, `state`, `census`,
 `shotlist`, `stemset`, `results`, `config get <key> | list [prefix] | set <key> <value> [project|global] | reset
-<key> [scope]`, `nav jump scene|marker|time ... | solo <scene> | mute <scene> | clear | restore`, `director
-start | stop | goto <k> | next | prev | auto on|off | validate | shots set <json> | add <json> | update <k> <json> | remove
-<k> | clear | from_scenes` (the shot list itself, so an agent can write the whole showcase from a description), `command <name>` (the app commands: `glow_off`,
-`hud_show`, `overview_apply`, ...). The package ships an MCP server (`agent/stagehand_mcp.py`, Python 3, standard
-library only, stdio) that exposes them as typed tools, and a skill (`agent/skills/stagehand/SKILL.md`) that teaches an
-agent the workflow: read first, ask before changing anything, never save, confirm a render with you in the
-conversation.
+<key> [scope]` (`set` and `reset` refuse the `agent.*` keys), `nav jump scene|marker|time ... | solo <scene> |
+mute <scene> | clear | restore`, `director start | stop | goto <k> | next | prev | auto on|off | validate | shots
+set <json> | add <json> | update <k> <json> | remove <k> | clear | from_scenes` (the shot list itself, so an agent
+can write the whole showcase from a description), `command <name>` (the app commands: `glow_off`, `hud_show`,
+`overview_apply`, ...). The package ships an MCP server (`agent/stagehand_mcp.py`, Python 3, standard library only,
+stdio) that exposes them as typed tools and marks every line it sends as coming from an agent, and a skill
+(`agent/skills/stagehand/SKILL.md`) that teaches an agent the workflow: read first, ask before changing anything,
+never save, confirm a render with you in the conversation.
 
 While Stagehand runs it refreshes a discovery file, `<home>/.stagehand/agent.json`, with the ctl folder of the open
 project, so the server needs no arguments and follows the project you switch to. An unsaved project has no ctl folder
@@ -823,22 +855,33 @@ The Agent tab shows the installed paths and copies the two forms most agents tak
   configuration file.
 
 Copy the skill folder into your agent's skills (`.claude/skills/` of a project or `~/.claude/skills/`) with the path
-the tab copies. Then ask the agent about the session; the first tool call says hello and the tab shows the agent's
-name, when it connected, how many commands it sent and how many were refused, and the last commands with their tokens.
+the tab copies. Switch **Agent access** on in the Agent tab (and the other two switches when you want the agent to
+change things or render). Then ask the agent about the session; the first tool call says hello and the tab shows
+the agent's name, when it connected, how many commands it sent and how many were refused, and the last commands
+with their tokens.
 
 ### The three switches
 
-- **Agent access** (`agent.enable`): the agent verbs answer. Off: every agent verb is refused (`ERROR ... refused:
-  agent access is off`); the companions' own verbs (`ping`, `arm`, `play`, `rect`, ...) keep working.
-- **Allow changes** (`agent.allow_changes`): anything that changes the project or the screen, from any driver:
-  jumps, scene solo / mute, Director runs, commands, `config set` / `reset`, `arm`, `play`, `layout`, `vid`, `glow`,
-  `goto`, `overview apply`, `stems render`. Off: reads only. `stop`, `quit`, `unlayout`, `overview restore` and `nav
-  restore` always work - a driver must always be able to put things back.
-- **Allow renders** (`agent.allow_render`): `stems render` may start a batch (needs Allow changes too). The MCP tool
-  refuses on its own until the agent passes `confirm=true`, which the skill tells it to do only after your clear yes.
+The switches are guardrails for AI agents. They apply to the agent verbs and to every line the MCP server sends
+(including the companions' verbs sent through `stagehand_raw`). The companion tools you start yourself
+(`record_showcase.py`, `overview_capture.py`, `stems_check.py`, your own scripts on the protocol) are not agents:
+the switches do not apply to them, and they work with every switch off. All three are **off by default**; turn
+them on in the Agent tab.
 
-The switches are global settings (they follow you, not the project). A refusal names the switch in the ERROR line
-and the agent is told to stop, not to work around it.
+- **Agent access** (`agent.enable`): the agent verbs answer and the MCP server's lines are accepted. Off: they are
+  refused (`ERROR ... refused: agent access is off`).
+- **Allow changes** (`agent.allow_changes`): an agent may change the project or the screen: jumps, scene solo /
+  mute, Director runs and shot-list edits, commands, `config set` / `reset`, and the companions' `arm`, `play`,
+  `layout`, `vid`, `glow`, `goto`, `overview apply`. Off: reads only. The verbs that put things back always work
+  while Agent access is on: `nav clear`, `nav restore`, `director stop`, `stop`, `quit`, `unlayout` and `overview
+  restore` (and `director validate`, which only checks) - an agent must always be able to undo what it did.
+- **Allow renders** (`agent.allow_render`): `stems render` may start a batch (needs Allow changes too). Renders go
+  through `stagehand_stems_render` only: the tool refuses until the agent passes `confirm=true`, which the skill
+  tells it to do only after your clear yes, and `stagehand_raw` never starts a render.
+
+The switches are global settings (they follow you, not the project). An agent can read them (`stagehand_status`
+shows them) but never change them: `config set` and `config reset` refuse every `agent.*` key, whatever the
+switches say. A refusal names the switch in the ERROR line and the agent is told to stop, not to work around it.
 
 ### The tools an agent sees
 
@@ -847,10 +890,11 @@ and the agent is told to stop, not to work around it.
 the validator's issues), `stagehand_stems` (the stem set and the render settings), `stagehand_results` (the last
 batch, per stem), `stagehand_config` (get / list / set / reset with the schema's ranges enforced), `stagehand_jump`
 (scene by name, part or number; marker; time), `stagehand_scene` (solo / mute / clear / restore),
-`stagehand_director` (start / stop / goto / next / prev / auto / validate), `stagehand_command`,
+`stagehand_director` (start / stop / goto / next / prev / auto / validate), `stagehand_shots_set` (write the shot
+list: set the whole list, add, update or remove a shot, clear, one shot per region), `stagehand_command`,
 `stagehand_stems_render` (`confirm=true` required; `stop=true` cancels), `stagehand_verbs`, `stagehand_raw` (any
-protocol line and the token to wait for) and `stagehand_connect` (a specific ctl folder or project instead of the
-discovered one).
+protocol line and the token to wait for, except a render) and `stagehand_connect` (a specific ctl folder or project
+instead of the discovered one).
 
 ### Keys (window focused, Agent tab)
 
