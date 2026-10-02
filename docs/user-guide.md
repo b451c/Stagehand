@@ -88,7 +88,7 @@ active scene with that track soloed in place.
 
 ### Items
 
-![The Items tab of the Navigator: the items of the active scene, filtered by family.](images/navigator_items.png){narrow}
+![The Items tab of the Navigator: the items of the active scene with their tracks, the ones under the edit cursor highlighted; the family chips filter the list.](images/navigator_items.png){narrow}
 
 The items of the active scene, sorted by time, with the track name. **play** auditions the item with its track
 soloed in place and stops at the item end; **M** mutes / unmutes the item. Click = cursor at the item, zoom to it,
@@ -312,7 +312,7 @@ viewer, a progress bar, the transport time and a loudness readout, and that pain
 It listens to the Director: when a run starts the bar opens by itself (Auto-show) and follows the shots; when the run
 stops it closes again. It changes nothing in the project.
 
-![The HUD tab; the bar itself docks at the bottom of REAPER during a run (see the Director run picture below).](images/hud.png){narrow}
+![The HUD tab; the bar itself docks at the bottom of REAPER during a run (see the Director run picture above).](images/hud.png){narrow}
 
 ### The bar
 
@@ -448,7 +448,7 @@ Every knob of every module lives in one tab: **Settings** (also `Stagehand - Set
 The tab is drawn from the configuration schema, so a setting can never be missing from it, and the full list with
 types, ranges and defaults is in `docs/config-reference.md` (generated from the same schema).
 
-![Settings: every key from the schema with its control, tooltip and override dot; This project / Global layers.](images/settings.png){narrow}
+![Settings: every key from the schema with its control, grouped by module; the This project / Global switch with the number of overrides in each layer, the search field and the presets row.](images/settings.png){narrow}
 
 ### Two layers
 
@@ -466,7 +466,7 @@ stay.
 
 ### Controls
 
-![Search narrows the tab to the matching keys ("spark").](images/settings_search.png){narrow}
+![Search narrows the tab to the matching keys ("spark"); the dot and the x mark a value overridden in this project.](images/settings_search.png){narrow}
 
 Every row has a label, a control and a tooltip with the meaning, the range and unit, the default and the key.
 Toggles switch at once. Sliders preview while you drag (the Glow and the HUD follow live) and the file is written
@@ -722,7 +722,7 @@ and put back after) and mutes only the tracks with an M cell (a track you muted 
 
 ### Building the set
 
-![The matrix editor: one row per stem, one column per track, cells S / I / M.](images/stems_matrix.png){mid}
+![The matrix editor: one row per track, one column per stem, cells S / I / M.](images/stems_matrix.png){mid}
 
 *Add stems* offers the bulk builders: **one stem per family** (the Navigator's families; a folder belongs to the family
 of its top ancestor), **one stem per top folder** (the folder track soloed in place plays its children; `stems.bulk.
@@ -782,7 +782,7 @@ batch or turn the option off, or the stems render silent.
 
 ### Results
 
-![The results page: one row per rendered file with peak, loudness and the action taken.](images/stems_results.png){narrow}
+![The results page: one row per rendered file with peak, loudness, length and the action taken.](images/stems_results.png){narrow}
 
 *Results* (R) shows the last batch: per stem the status dot (ok, silent, error, skipped), the file, the sample peak in
 dBFS (scanned by Stagehand for WAV files, exact), the integrated loudness and the length; *Open* opens the folder
